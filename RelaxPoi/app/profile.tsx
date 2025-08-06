@@ -1,4 +1,3 @@
-// app/profile.tsx
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +9,7 @@ import { useRouter } from 'expo-router';
 const ProfileScreen = () => {
   const { user } = useAuth();
   const router = useRouter();
-  // Initialize with the user's current display name or email part
+  
   const [username, setUsername] = useState(user?.displayName || user?.email?.split('@')[0] || '');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,14 +22,13 @@ const ProfileScreen = () => {
     
     setIsLoading(true);
     try {
-      // 1. Update the profile in Firebase Authentication
+      
       await updateProfile(user, { displayName: username });
 
-      // 2. Update the name in the Realtime Database for all games
+      
       const updates: Record<string, any> = {};
       updates[`/games/global_room/players/${user.uid}/name`] = username;
-      // In a real app, you would update the name in a separate '/users/' table
-      //await update(ref(db), updates);
+    
 
       Alert.alert("Success", "Your username has been updated.", [
         { text: "OK", onPress: () => router.back() }

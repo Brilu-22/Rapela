@@ -1,11 +1,8 @@
-// firebaseConfig.js
-
 import { initializeApp } from 'firebase/app';
-// ---> THIS IS THE MISSING LINE <---
 import { getAuth } from 'firebase/auth'; 
 import { getDatabase } from 'firebase/database';
 
-// Your configuration object from the Firebase console
+
 const firebaseConfig = {
   apiKey: "AIzaSyB4xtSfpJEgBap_PUuI-5JQVMIjsFN_UGs",
   authDomain: "njpoiuy-9ca53.firebaseapp.com",
@@ -20,7 +17,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ---> THIS IS THE OTHER MISSING LINE <---
-// Initialize Firebase Authentication and export it for use in other files
+
 export const auth = getAuth(app);
-export const db = getDatabase(app); // Export the Realtime Database instance
+export const db = getDatabase(app); 

@@ -1,5 +1,3 @@
-// app/index.tsx
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';

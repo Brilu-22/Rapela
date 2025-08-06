@@ -1,5 +1,3 @@
-// app/dulceFlowPuzzle.tsx
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,13 +7,13 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 
-// --- Game Configuration ---
+//This is for the game 
 const GRID_SIZE = 3;
 const INITIAL_TIME_PER_LEVEL = 60;
 const POINTS_PER_SECOND = 10;
 const SWIPE_THRESHOLD = 30;
 
-// --- Color Palette ---
+
 const COLORS = {
   primary: '#E8F5E9',
   secondary: '#A5D6A7',
@@ -32,11 +30,11 @@ const CONTAINER_PADDING = 20;
 const TILE_MARGIN = 5;
 const TILE_SIZE = (width - (CONTAINER_PADDING * 2) - (TILE_MARGIN * (GRID_SIZE * 2))) / GRID_SIZE;
 
-// --- Utility Functions ---
+
 const createInitialGrid = (size: number) => {
   const tiles: (number | null)[] = Array.from({ length: size * size - 1 }, (_, i) => i + 1);
-  tiles.push(null); // null represents the empty space
-  // Simple shuffle, for a real puzzle a solvability check is needed
+  tiles.push(null); 
+  
   return shuffleArray(tiles);
 };
 
@@ -55,15 +53,14 @@ const isSolved = (grid: (number | null)[]) => {
   return grid[grid.length - 1] === null;
 };
 
-// --- Tile Component ---
-// We create a separate component for the tile to manage its own animation state
-// ---> FIX: Define the types for the props the Tile component will receive
+
+//Define the types for the props the Tile component will receive
 type TileProps = {
   value: number;
   onSwipe: (value: number, swipeX: number, swipeY: number) => void;
 };
 
-// Now, use the TileProps type to define the component's props
+//using the TileProps type to define the component's props
 const Tile = ({ value, onSwipe }: TileProps) => {
   const offsetX = useSharedValue(0);
   const offsetY = useSharedValue(0);
@@ -101,7 +98,7 @@ const Tile = ({ value, onSwipe }: TileProps) => {
 };
 
 
-// --- Game Screen Component ---
+//here I'm defining the main game component 
 const DulceFlowPuzzle = () => {
   const { user } = useAuth();
   const router = useRouter();

@@ -1,5 +1,3 @@
-// app/journal.tsx
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -20,7 +18,7 @@ const JournalScreen = () => {
       Alert.alert("Empty Entry", "Please write something before saving.");
       return;
     }
-    // For now, we just show a confirmation and clear the text.
+    
     Alert.alert("Saved", "Your journal entry has been saved.", [{ text: "OK", onPress: () => setEntry('') }]);
   };
 

@@ -1,5 +1,3 @@
-// app/_layout.tsx
-
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -22,7 +20,7 @@ const InitialLayout = () => {
       router.replace('/home');
     } 
     // If there is no user, they should be on the login screen.
-    // We don't need an else statement, because the default screen is already '/'.
+    
 
   }, [user, loading]); // The dependency array for the effect
 

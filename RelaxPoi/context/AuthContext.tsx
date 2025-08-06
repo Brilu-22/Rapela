@@ -1,5 +1,3 @@
-// context/AuthContext.tsx
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig'; // Import from your config file
@@ -14,22 +12,21 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-// Create the context with a default undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// The provider component that will wrap our app
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // onAuthStateChanged returns an unsubscribe function
+    
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
+    
     return () => unsubscribe();
   }, []);
 

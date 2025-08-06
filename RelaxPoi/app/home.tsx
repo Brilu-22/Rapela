@@ -1,5 +1,3 @@
-// app/home.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -29,7 +27,7 @@ const HomeScreen = () => {
     };
   });
 
-  // Use a generic name if the user is anonymous
+  // Using a generic name for anonymous users
   const displayName = user?.isAnonymous ? 'there' : (user?.email?.split('@')[0] || 'Tony');
 
   return (
@@ -66,7 +64,7 @@ const HomeScreen = () => {
             <Text style={styles.cardDuration}>2 min</Text>
         </TouchableOpacity>
 
-        {/* This row now only contains the two small cards, as intended. */}
+        
 <View style={styles.cardRow}>
     <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/journal')}>
         <Text style={styles.cardTitleSmall}>Journaling</Text>

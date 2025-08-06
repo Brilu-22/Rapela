@@ -1,5 +1,3 @@
-// app/videoDiary.tsx
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,7 +9,7 @@ const VideoDiaryScreen = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Request permission when the component mounts
+    
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
