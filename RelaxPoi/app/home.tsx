@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native'; // Import Alert
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
@@ -27,15 +27,30 @@ const HomeScreen = () => {
     };
   });
 
-  // Using a generic name for anonymous users
   const displayName = user?.isAnonymous ? 'there' : (user?.email?.split('@')[0] || 'Tony');
+
+  // --- NEW LOGOUT HANDLER ---
+  // This function will handle both logging out and redirecting the user.
+  const handleLogout = async () => {
+    try {
+      await logout(); // Call the original logout function from your context
+      // After logout is successful, replace the current screen with the login screen.
+      // We use 'replace' to prevent the user from going back to the home screen.
+      // Assuming your login screen is the root route '/'. If it's different, change it here.
+      router.replace('/'); 
+    } catch (error: any) {
+      console.error("Logout Error:", error.message);
+      Alert.alert("Logout Failed", "An error occurred while trying to log out. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
             <View style={styles.logo}><Text style={{ color: COLORS.text }}>D</Text></View>
-            <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+            {/* The logout button now calls our new handleLogout function */}
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
                 <Feather name="log-out" size={26} color={COLORS.text} />
             </TouchableOpacity>
         </View>
@@ -65,22 +80,22 @@ const HomeScreen = () => {
         </TouchableOpacity>
 
         
-<View style={styles.cardRow}>
-    <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/journal')}>
-        <Text style={styles.cardTitleSmall}>Journaling</Text>
-        <Text style={styles.cardDurationSmall}>2 min</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/videoDiary')}>
-        <Text style={styles.cardTitleSmall}>Video Diary</Text>
-        <Text style={styles.cardDurationSmall}>2 min</Text>
-    </TouchableOpacity>
-</View>
+        <View style={styles.cardRow}>
+            <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/journal')}>
+                <Text style={styles.cardTitleSmall}>Journaling</Text>
+                <Text style={styles.cardDurationSmall}>2 min</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/videoDiary')}>
+                <Text style={styles.cardTitleSmall}>Video Diary</Text>
+                <Text style={styles.cardDurationSmall}>2 min</Text>
+            </TouchableOpacity>
+        </View>
 
 
-<TouchableOpacity style={styles.largeCard} onPress={() => router.push('/game')}>
-    <Text style={styles.cardTitle}>DulceFlow Puzzle</Text>
-    <Text style={styles.cardDuration}>Timed Challenge</Text>
-</TouchableOpacity>
+        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/game')}>
+            <Text style={styles.cardTitle}>DulceFlow Puzzle</Text>
+            <Text style={styles.cardDuration}>Timed Challenge</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
