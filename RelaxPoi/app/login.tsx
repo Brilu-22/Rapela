@@ -64,7 +64,7 @@ const LoginScreen = () => {
       )}
 
       {/* Link to the SignUp screen */}
-      <Link href="/signup" asChild>
+      <Link href="./signup" asChild>
         <TouchableOpacity>
           <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
