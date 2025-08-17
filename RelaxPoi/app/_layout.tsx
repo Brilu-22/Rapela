@@ -33,6 +33,18 @@ const InitialLayout = () => {
       <Stack.Screen name="breathing" options={{ title: 'Breathing Exercise' }} />
       <Stack.Screen name="dulceFlowPuzzle" options={{ title: 'DulceFlow Puzzle', headerTintColor: '#388E3C' }} />
       <Stack.Screen name="videoDiary" options={{ title: 'Video Diary', headerShown: false }} />
+       <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="home" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="stats" 
+        options={{ 
+          title: 'Your Stats', 
+          headerBackTitle: 'Back', 
+          headerTintColor: '#388E3C' 
+        }} 
+      />
+    </Stack>
     </Stack>
   );
 };

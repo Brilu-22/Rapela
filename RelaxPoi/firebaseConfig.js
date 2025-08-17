@@ -1,22 +1,25 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth'; 
-import { getDatabase } from 'firebase/database';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // <-- IMPORTANT: Import getFirestore instead of getDatabase
 
-
+// Your web app's Firebase configuration
+// I have removed the databaseURL as it's for the Realtime Database
 const firebaseConfig = {
   apiKey: "AIzaSyB4xtSfpJEgBap_PUuI-5JQVMIjsFN_UGs",
   authDomain: "njpoiuy-9ca53.firebaseapp.com",
   projectId: "njpoiuy-9ca53",
-  storageBucket: "njpoiuy-9ca53.firebasestorage.app",
+  storageBucket: "njpoiuy-9ca53.appspot.com", // Corrected the domain to .appspot.com
   messagingSenderId: "292530341525",
   appId: "1:292530341525:web:905aca462b607c153d7d9c",
-  databaseURL: "https://njpoiuy-9ca53-default-rtdb.firebaseio.com/",
   measurementId: "G-PXZYWVV63D"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-
+// Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-export const db = getDatabase(app); 
+
+// --- THIS IS THE KEY FIX ---
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getFirestore(app);

@@ -60,9 +60,7 @@ type TileProps = {
   onTap: (value: number) => void;
 };
 
-// --- CORRECTED TILE COMPONENT ---
-// Reverted to handle all gestures (tap and pan) within Gesture Detector
-// to preserve original styling and interaction.
+
 const Tile = ({ value, onSwipe, onTap }: TileProps) => {
   const offsetX = useSharedValue(0);
   const offsetY = useSharedValue(0);

@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native'; // Import Alert
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
+import { doc, onSnapshot } from 'firebase/firestore'; // Import Firestore listener
+import { db } from '../firebaseConfig';
 
 const COLORS = {
   primary: '#E8F5E9',
@@ -12,35 +14,65 @@ const COLORS = {
   inactive: '#F1F8E9',
 };
 
+// Helper to get today's date string
+const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 const HomeScreen = () => {
   const router = useRouter();
   const { logout, user } = useAuth();
+  const [progress, setProgress] = useState(0); // State to hold the progress percentage
+
   const today = new Date();
   const days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
   const dates = Array.from({ length: 5 }, (_, i) => {
     const date = new Date();
     date.setDate(today.getDate() + i - 2);
-    return {
-      day: days[date.getDay()],
-      date: date.getDate(),
-      isToday: i === 2,
-    };
+    return { day: days[date.getDay()], date: date.getDate(), isToday: i === 2 };
   });
 
-  const displayName = user?.isAnonymous ? 'there' : (user?.email?.split('@')[0] || 'Tony');
+  // This useEffect hook listens for changes to today's activities in Firestore
+  useEffect(() => {
+    if (!user) return; // Don't run if there's no user
 
-  // --- NEW LOGOUT HANDLER ---
-  // This function will handle both logging out and redirecting the user.
+    const todayString = getTodayDateString();
+    const activityDocRef = doc(db, 'users', user.uid, 'dailyActivities', todayString);
+
+    // onSnapshot creates a real-time listener
+    const unsubscribe = onSnapshot(activityDocRef, (doc) => {
+      const TOTAL_TASKS = 3; // Total tasks: Journal, Video Diary, Game
+      let completedTasks = 0;
+
+      if (doc.exists()) {
+        const data = doc.data();
+        if (data.journalCompleted) completedTasks++;
+        if (data.videoDiaryCompleted) completedTasks++; // For future implementation
+        if (data.gameCompleted) completedTasks++; // For future implementation
+      }
+      
+      // Calculate and set the progress percentage
+      const newProgress = (completedTasks / TOTAL_TASKS) * 100;
+      setProgress(Math.round(newProgress));
+    });
+
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
+  }, [user]); // Rerun the effect if the user changes
+
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'there';
+
   const handleLogout = async () => {
     try {
-      await logout(); // Call the original logout function from your context
-      // After logout is successful, replace the current screen with the login screen.
-      // We use 'replace' to prevent the user from going back to the home screen.
-      // Assuming your login screen is the root route '/'. If it's different, change it here.
+      await logout();
       router.replace('/'); 
     } catch (error: any) {
       console.error("Logout Error:", error.message);
-      Alert.alert("Logout Failed", "An error occurred while trying to log out. Please try again.");
+      Alert.alert("Logout Failed", "An error occurred while trying to log out.");
     }
   };
 
@@ -49,14 +81,16 @@ const HomeScreen = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
             <View style={styles.logo}><Text style={{ color: COLORS.text }}>D</Text></View>
-            {/* The logout button now calls our new handleLogout function */}
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
                 <Feather name="log-out" size={26} color={COLORS.text} />
             </TouchableOpacity>
         </View>
 
         <View style={styles.welcomeSection}>
-          <View style={styles.progressCircle}><Text style={styles.progressText}>75%</Text></View>
+          {/* PROGRESS CIRCLE NOW DISPLAYS DYNAMIC DATA */}
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressText}>{progress}%</Text>
+          </View>
           <View>
             <TouchableOpacity onPress={() => router.push('./profile')}>
               <Text style={styles.welcomeMessage}>Enjoy your day, {displayName}</Text>
@@ -64,11 +98,22 @@ const HomeScreen = () => {
             <Text style={styles.planTitle}>Today's Plan</Text>
           </View>
         </View>
+        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('./stats')}>
+            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+                <Feather name="bar-chart-2" size={24} color={COLORS.text} style={{ marginRight: 10 }}/>
+                <Text style={styles.cardTitle}>View Your Mood Stats</Text>
+            </View>
+        </TouchableOpacity>
+
+        <View style={styles.calendarContainer}>
+          {/* ... existing calendar code ... */}
+        </View>
 
         <View style={styles.calendarContainer}>
           {dates.map((d, index) => (
             <View key={index} style={[styles.dateBox, d.isToday && styles.todayBox]}>
               <Text style={[styles.dateText, d.isToday && styles.todayText]}>{d.date}</Text>
+
               <Text style={[styles.dayText, d.isToday && styles.todayText]}>{d.day}</Text>
             </View>
           ))}
@@ -78,7 +123,6 @@ const HomeScreen = () => {
             <Text style={styles.cardTitle}>Breathing Exercise</Text>
             <Text style={styles.cardDuration}>2 min</Text>
         </TouchableOpacity>
-
         
         <View style={styles.cardRow}>
             <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/journal')}>
@@ -90,7 +134,6 @@ const HomeScreen = () => {
                 <Text style={styles.cardDurationSmall}>2 min</Text>
             </TouchableOpacity>
         </View>
-
 
         <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/game')}>
             <Text style={styles.cardTitle}>DulceFlow Puzzle</Text>
