@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // <-- IMPORTANT: Import getFirestore instead of getDatabase
+import { getFirestore } from "firebase/firestore"; 
 
 // Your web app's Firebase configuration
 // I have removed the databaseURL as it's for the Realtime Database

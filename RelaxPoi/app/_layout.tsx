@@ -30,7 +30,7 @@ const InitialLayout = () => {
     } else {
       // If there is no user, navigate them to the login screen.
       // This ensures they can't access 'home' without being logged in.
-      router.replace('./login');
+      router.replace('/login');
     }
 
   }, [user, loading]); // Rerun this effect whenever user or loading status changes
