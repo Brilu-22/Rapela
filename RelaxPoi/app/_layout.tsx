@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import * as SplashScreen from 'expo-splash-screen'; // Import the splash screen library
+import * as SplashScreen from 'expo-splash-screen'; 
 
 // This command tells the splash screen to stay visible automatically.
 // We will hide it manually when the app is ready.
@@ -41,6 +41,7 @@ const InitialLayout = () => {
   return (
     <Stack>
      
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
       
