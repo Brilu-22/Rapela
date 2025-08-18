@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signOut, updateProfile } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; // Import from your config file
+import { auth } from '../firebaseConfig'; 
 
 // Define the shape of the context data with updated signUp signature
 interface AuthContextType {

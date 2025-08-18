@@ -40,11 +40,11 @@ const InitialLayout = () => {
   // until we call hideAsync().
   return (
     <Stack>
-      {/* The login and signup screens are part of the main stack */}
+     
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
       
-      {/* Your main app screens */}
+      
       <Stack.Screen name="home" options={{ headerShown: false }} />
       <Stack.Screen name="journal" options={{ title: 'Journal', headerBackTitle: 'Back', headerTintColor: '#388E3C' }} />
       <Stack.Screen name="breathing" options={{ title: 'Breathing Exercise' }} />
