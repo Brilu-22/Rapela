@@ -1,7 +1,14 @@
+import React from 'react';
 import { View } from 'react-native';
+import SplashScreen from './splashScreen'; // FIX: Changed to capital 'S' to match the filename
 
-// This is the initial route. The _layout component will handle redirecting
-// the user away from here to either /login or /home.
+// The index route is the very first screen the app opens.
+// We want it to be our animated splash screen.
 export default function StartPage() {
-  return <View />;
+  // Use a View with a background color as a fallback while the component loads
+  return (
+    <View style={{ flex: 1, backgroundColor: '#1A202C' }}>
+      <SplashScreen />
+    </View>
+  );
 }

@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useActivityTracker } from '../hooks/useActivityTracker'; 
 
 const COLORS = {
   primary: '#E8F5E9',
@@ -26,6 +27,7 @@ const JournalScreen = () => {
   const [entry, setEntry] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth(); // Get the current user from context
+  useActivityTracker('journal');
 
   const handleSave = async () => {
     if (entry.trim() === '') {

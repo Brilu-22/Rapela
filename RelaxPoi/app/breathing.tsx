@@ -12,6 +12,8 @@ import Animated, {
   useDerivedValue,
 } from 'react-native-reanimated';
 
+import { useActivityTracker } from '../hooks/useActivityTracker'; 
+
 // Create an animatable version of TextInput for reanimated to control
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
@@ -19,6 +21,7 @@ const BreathingScreen = () => {
   const progress = useSharedValue(0);
   const isHolding = useSharedValue(false);
   const timerValue = useSharedValue(7);
+  useActivityTracker('breathing'); ;
 
   const panGesture = Gesture.Pan()
     .onStart(() => {

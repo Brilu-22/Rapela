@@ -40,10 +40,41 @@ const SignUpScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
-      <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-      <TextInput style={styles.input} placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+      
+      {/* --- FIX APPLIED: Added placeholderTextColor to each TextInput --- */}
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor={COLORS.secondary} // This makes the placeholder visible
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor={COLORS.secondary} // This makes the placeholder visible
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor={COLORS.secondary} // This makes the placeholder visible
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        placeholderTextColor={COLORS.secondary} // This makes the placeholder visible
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
 
       {isLoading ? (
         <ActivityIndicator size="large" color={COLORS.text} />
@@ -53,7 +84,7 @@ const SignUpScreen = () => {
         </TouchableOpacity>
       )}
 
-      <Link href="./login" asChild>
+      <Link href="/login" asChild>
         <TouchableOpacity>
           <Text style={styles.linkText}>Already have an account? Login</Text>
         </TouchableOpacity>
