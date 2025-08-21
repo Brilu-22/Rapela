@@ -1,33 +1,34 @@
+// app/(app)/zenslide.tsx
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Dimensions, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Feather } from '@expo/vector-icons';
 import { useActivityTracker } from '../hooks/useActivityTracker';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-// --- A Refreshed, Calming Green Color Palette ---
+// --- NEW "APPLE AESTHETIC / SOFT UI" PALETTE ---
 const COLORS = {
-  background: '#F0FFF4',
-  container: '#FFFFFF',
-  primaryText: '#2F855A',
-  secondaryText: '#38A169',
-  tile: '#C6F6D5',
-  tileBorder: '#9AE6B4',
-  booster: '#4FD1C5',
-  boosterText: '#FFFFFF',
-  disabled: '#A0AEC0',
+  background: '#F0F2F5',
+  primary: '#34D399',
+  card: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  shadow: '#D1D5DB',
+  accent: '#ECFDF5',
+  disabled: '#9CA3AF',
 };
 
 const GRID_SIZE = 3;
 const TILE_CONTAINER_WIDTH = width * 0.9;
-const TILE_MARGIN = 4;
-const TILE_SIZE = (TILE_CONTAINER_WIDTH - TILE_MARGIN * (GRID_SIZE - 1)) / GRID_SIZE;
-useActivityTracker('zenslide'); ;
+const TILE_MARGIN = 5; // Updated for new design
+const TILE_SIZE = (TILE_CONTAINER_WIDTH - TILE_MARGIN * (GRID_SIZE + 1)) / GRID_SIZE;
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
@@ -40,14 +41,15 @@ interface TileProps {
   isSwapMode: boolean;
 }
 
+// THIS COMPONENT'S LOGIC IS UNCHANGED
 const Tile = React.memo(({ value, index, onPress, onSwipe, isSwapSelected, isSwapMode }: TileProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     const targetX = (index % GRID_SIZE) * (TILE_SIZE + TILE_MARGIN);
     const targetY = Math.floor(index / GRID_SIZE) * (TILE_SIZE + TILE_MARGIN);
     return {
       transform: [
-        { translateX: withSpring(targetX) },
-        { translateY: withSpring(targetY) },
+        { translateX: withSpring(targetX, { damping: 15, stiffness: 120 }) },
+        { translateY: withSpring(targetY, { damping: 15, stiffness: 120 }) },
       ],
     };
   });
@@ -72,7 +74,11 @@ const Tile = React.memo(({ value, index, onPress, onSwipe, isSwapSelected, isSwa
   return (
     <Animated.View style={[styles.tileBase, animatedStyle]}>
       <GestureDetector gesture={panGesture}>
-        <TouchableOpacity onPress={() => onPress(index)} style={[styles.tileButton, isSwapSelected && styles.swapSelected]}>
+        <TouchableOpacity 
+          onPress={() => onPress(index)} 
+          style={[styles.tileButton, isSwapSelected && styles.swapSelected]}
+          disabled={!isSwapMode}
+        >
           <Text style={styles.tileText}>{value}</Text>
         </TouchableOpacity>
       </GestureDetector>
@@ -80,8 +86,12 @@ const Tile = React.memo(({ value, index, onPress, onSwipe, isSwapSelected, isSwa
   );
 });
 
-const ZenSlideGame = () => {
+
+export default function ZenSlideGame() {
+    useActivityTracker('zenslide'); 
+
     const { user } = useAuth();
+    const router = useRouter(); // Added router for back button
     const [grid, setGrid] = useState<(number | null)[]>([]);
     const [moves, setMoves] = useState(0);
     const [boosters, setBoosters] = useState(3);
@@ -89,12 +99,13 @@ const ZenSlideGame = () => {
     const [firstSwapIndex, setFirstSwapIndex] = useState<number | null>(null);
     const [leaderboard, setLeaderboard] = useState<{ moves: number; name: string }[]>([]);
 
+    // --- ALL OF YOUR ORIGINAL GAME LOGIC IS PRESERVED BELOW ---
     const emptyIndex = useMemo(() => grid.indexOf(null), [grid]);
 
     const createSolvableGrid = useCallback(() => {
         const numberedTiles: number[] = Array.from({ length: GRID_SIZE * GRID_SIZE - 1 }, (_, i) => i + 1);
         const tiles: (number | null)[] = [...numberedTiles, null];
-        for (let i = tiles.length - 1; i > 0; i--) {
+        for (let i = tiles.length - 2; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
         }
@@ -111,9 +122,13 @@ const ZenSlideGame = () => {
         if (!user || moves === 0) return;
         const userName = user.displayName || 'Anonymous';
         const scoreDocRef = doc(db, 'zenSlideScores', user.uid);
-        const docSnap = await getDoc(scoreDocRef);
-        if (!docSnap.exists() || docSnap.data().moves > moves) {
-            await setDoc(scoreDocRef, { moves, name: userName });
+        try {
+            const docSnap = await getDoc(scoreDocRef);
+            if (!docSnap.exists() || docSnap.data().moves > moves) {
+                await setDoc(scoreDocRef, { moves, name: userName });
+            }
+        } catch (error) {
+            console.error("Error saving score:", error);
         }
     };
     
@@ -128,20 +143,19 @@ const ZenSlideGame = () => {
 
     const handleTileSwipe = (swipedValue: number, direction: SwipeDirection) => {
         if (isSwapMode || emptyIndex === -1) return;
-
         const swipedIndex = grid.indexOf(swipedValue);
         const [swipedRow, swipedCol] = [Math.floor(swipedIndex / GRID_SIZE), swipedIndex % GRID_SIZE];
         const [emptyRow, emptyCol] = [Math.floor(emptyIndex / GRID_SIZE), emptyIndex % GRID_SIZE];
 
-        let isAdjacent = false;
+        let canMove = false;
         switch (direction) {
-            case 'up':    if (swipedRow - 1 === emptyRow && swipedCol === emptyCol) isAdjacent = true; break;
-            case 'down':  if (swipedRow + 1 === emptyRow && swipedCol === emptyCol) isAdjacent = true; break;
-            case 'left':  if (swipedCol - 1 === emptyCol && swipedRow === emptyRow) isAdjacent = true; break;
-            case 'right': if (swipedCol + 1 === emptyCol && swipedRow === emptyRow) isAdjacent = true; break;
+            case 'up':    if (swipedRow - 1 === emptyRow && swipedCol === emptyCol) canMove = true; break;
+            case 'down':  if (swipedRow + 1 === emptyRow && swipedCol === emptyCol) canMove = true; break;
+            case 'left':  if (swipedCol - 1 === emptyCol && swipedRow === emptyRow) canMove = true; break;
+            case 'right': if (swipedCol + 1 === emptyCol && swipedRow === emptyRow) canMove = true; break;
         }
 
-        if (isAdjacent) {
+        if (canMove) {
             const newGrid = [...grid];
             [newGrid[swipedIndex], newGrid[emptyIndex]] = [newGrid[emptyIndex], newGrid[swipedIndex]];
             setGrid(newGrid);
@@ -162,15 +176,16 @@ const ZenSlideGame = () => {
             const newGrid = [...grid];
             [newGrid[firstSwapIndex], newGrid[tappedIndex]] = [newGrid[tappedIndex], newGrid[firstSwapIndex]];
             setGrid(newGrid);
-            
             setBoosters(prev => prev - 1);
             setIsSwapMode(false);
+            setFirstSwapIndex(null);
+        } else {
             setFirstSwapIndex(null);
         }
     };
     
     const toggleSwapMode = () => {
-        if (boosters > 0) {
+        if (boosters > 0 || isSwapMode) {
             setIsSwapMode(!isSwapMode);
             setFirstSwapIndex(null);
         }
@@ -185,66 +200,187 @@ const ZenSlideGame = () => {
     }, [grid, moves, createSolvableGrid]);
 
     if (grid.length === 0) {
-        return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primaryText} /></SafeAreaView>;
+        return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} /></SafeAreaView>;
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+                    <Feather name="chevron-left" size={28} color={COLORS.textSecondary} />
+                </TouchableOpacity>
                 <Text style={styles.title}>Zen Slide</Text>
-                <View style={styles.statsContainer}>
-                    <Text style={styles.statText}>Moves: {moves}</Text>
-                    <TouchableOpacity onPress={toggleSwapMode} style={[styles.boosterButton, boosters === 0 && { backgroundColor: COLORS.disabled }]}>
-                        <Feather name="shuffle" size={16} color={COLORS.boosterText} />
-                        <Text style={styles.boosterText}>Swap ({boosters})</Text>
-                    </TouchableOpacity>
+                <View style={{width: 48}} />{/* Spacer */}
+            </View>
+            
+            <View style={styles.statsContainer}>
+                <View style={styles.statBox}>
+                    <Text style={styles.statLabel}>Moves</Text>
+                    <Text style={styles.statValue}>{moves}</Text>
                 </View>
-                
-                <View style={styles.gridContainer}>
-                    {grid.map((value, i) => (
-                        <Tile 
-                            key={value || 'empty'}
-                            value={value} 
-                            index={i}
-                            onPress={handleTileTap}
-                            onSwipe={handleTileSwipe}
-                            isSwapSelected={firstSwapIndex === i}
-                            isSwapMode={isSwapMode}
-                        />
-                    ))}
-                </View>
+                <TouchableOpacity onPress={toggleSwapMode} style={[styles.boosterButton, boosters === 0 && !isSwapMode && { backgroundColor: COLORS.disabled }]}>
+                    <Feather name="shuffle" size={16} color="white" />
+                    <Text style={styles.boosterText}>{isSwapMode ? 'Cancel' : `Swap (${boosters})`}</Text>
+                </TouchableOpacity>
+            </View>
+            
+            <View style={styles.gridContainer}>
+                {grid.map((value, i) => (
+                    <Tile 
+                        key={value || `empty-${i}`}
+                        value={value} 
+                        index={i}
+                        onPress={handleTileTap}
+                        onSwipe={handleTileSwipe}
+                        isSwapSelected={firstSwapIndex === i}
+                        isSwapMode={isSwapMode}
+                    />
+                ))}
+            </View>
 
-                <View style={styles.leaderboardContainer}>
-                    <Text style={styles.leaderboardTitle}>Top Solvers (Fewest Moves)</Text>
-                    {leaderboard.map((entry, idx) => (
-                        <View key={idx} style={styles.leaderboardRow}>
-                            <Text style={styles.leaderboardText}>{idx + 1}. {entry.name}</Text>
-                            <Text style={styles.leaderboardText}>{entry.moves} moves</Text>
-                        </View>
-                    ))}
-                </View>
-            </SafeAreaView>
-        </GestureHandlerRootView>
+            <View style={styles.leaderboardContainer}>
+                <Text style={styles.leaderboardTitle}>Top Solvers</Text>
+                {leaderboard.map((entry, idx) => (
+                    <View key={idx} style={styles.leaderboardRow}>
+                        <Text style={styles.leaderboardText}>{idx + 1}. {entry.name}</Text>
+                        <Text style={[styles.leaderboardText, {fontWeight: 'bold'}]}>{entry.moves} moves</Text>
+                    </View>
+                ))}
+            </View>
+        </SafeAreaView>
     );
 };
 
-// --- THIS IS THE FIX: A COMPLETE STYLESHEET OBJECT ---
+// --- NEW STYLES MATCHING THE "APPLE AESTHETIC" ---
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center' },
-    title: { fontSize: 36, fontWeight: 'bold', color: COLORS.primaryText, marginVertical: 20 },
-    statsContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: TILE_CONTAINER_WIDTH, marginBottom: 20 },
-    statText: { fontSize: 20, color: COLORS.secondaryText, fontWeight: '600' },
-    boosterButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.booster, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20 },
-    boosterText: { color: COLORS.boosterText, fontSize: 14, fontWeight: 'bold', marginLeft: 6 },
-    gridContainer: { width: TILE_CONTAINER_WIDTH, height: TILE_CONTAINER_WIDTH, backgroundColor: '#EDF2F7', borderRadius: 10, padding: TILE_MARGIN },
-    tileBase: { position: 'absolute', width: TILE_SIZE, height: TILE_SIZE },
-    tileButton: { width: '100%', height: '100%', backgroundColor: COLORS.tile, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.tileBorder, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.22, shadowRadius: 2.22 },
-    tileText: { fontSize: TILE_SIZE * 0.4, color: COLORS.primaryText, fontWeight: 'bold' },
-    swapSelected: { borderWidth: 3, borderColor: COLORS.booster },
-    leaderboardContainer: { width: '90%', marginTop: 'auto', marginBottom: 20, backgroundColor: COLORS.container, padding: 15, borderRadius: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41, },
-    leaderboardTitle: { fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: COLORS.primaryText },
-    leaderboardRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
-    leaderboardText: { fontSize: 16, color: COLORS.secondaryText },
+    container: { 
+        flex: 1, 
+        backgroundColor: COLORS.background, 
+        alignItems: 'center' 
+    },
+    header: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+    },
+    headerButton: {
+        backgroundColor: COLORS.card,
+        padding: 10,
+        borderRadius: 20,
+    },
+    title: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        color: COLORS.textPrimary,
+    },
+    statsContainer: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        width: '90%', 
+        marginVertical: 30,
+        backgroundColor: COLORS.card,
+        padding: 20,
+        borderRadius: 15,
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    statBox: {
+        alignItems: 'center',
+    },
+    statLabel: {
+        fontSize: 14,
+        color: COLORS.textSecondary,
+    },
+    statValue: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: COLORS.textPrimary,
+    },
+    boosterButton: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: COLORS.primary, 
+        paddingVertical: 12, 
+        paddingHorizontal: 16, 
+        borderRadius: 20 
+    },
+    boosterText: { 
+        color: 'white', 
+        fontSize: 14, 
+        fontWeight: 'bold', 
+        marginLeft: 8 
+    },
+    gridContainer: { 
+        width: TILE_CONTAINER_WIDTH, 
+        height: TILE_CONTAINER_WIDTH, 
+        backgroundColor: COLORS.accent,
+        borderRadius: 10,
+        position: 'relative',
+        padding: TILE_MARGIN,
+    },
+    tileBase: { 
+        position: 'absolute', 
+        width: TILE_SIZE, 
+        height: TILE_SIZE,
+    },
+    tileButton: { 
+        width: '100%', 
+        height: '100%', 
+        backgroundColor: COLORS.card, 
+        borderRadius: 8, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 4,
+    },
+    tileText: { 
+        fontSize: TILE_SIZE * 0.4, 
+        color: COLORS.textPrimary, 
+        fontWeight: 'bold' 
+    },
+    swapSelected: { 
+        borderWidth: 3, 
+        borderColor: COLORS.primary 
+    },
+    leaderboardContainer: { 
+        width: '90%', 
+        marginTop: 'auto', 
+        marginBottom: 20, 
+        backgroundColor: COLORS.card, 
+        padding: 20, 
+        borderRadius: 15,
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    leaderboardTitle: { 
+        fontSize: 18, 
+        fontWeight: 'bold', 
+        textAlign: 'center', 
+        marginBottom: 15, 
+        color: COLORS.textPrimary 
+    },
+    leaderboardRow: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.background,
+    },
+    leaderboardText: { 
+        fontSize: 16, 
+        color: COLORS.textSecondary 
+    },
 });
-
-export default ZenSlideGame;

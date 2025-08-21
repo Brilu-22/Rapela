@@ -1,61 +1,66 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { router } from 'expo-router';
+import { 
+    View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, 
+    Alert, KeyboardAvoidingView, Platform, ActivityIndicator, 
+    TouchableWithoutFeedback, Keyboard
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
-import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-import { useActivityTracker } from '../hooks/useActivityTracker'; 
+import { collection, addDoc, serverTimestamp, doc, setDoc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { useActivityTracker } from '../hooks/useActivityTracker';
+import MoodModal from '../components/MoodModal'; // Corrected path assuming components is at the root
+import { Feather } from '@expo/vector-icons';
+import { useUserData } from '../hooks/useUserData';
 
+// --- USE THE SAME "APPLE AESTHETIC / SOFT UI" PALETTE ---
 const COLORS = {
-  primary: '#E8F5E9',
-  secondary: '#A5D6A7',
-  text: '#388E3C',
-  background: '#FFFFFF',
-};
-
-// Helper function to get today's date as a string (e.g., "2025-08-17")
-const getTodayDateString = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  background: '#F0F2F5',
+  primary: '#34D399',
+  card: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  shadow: '#D1D5DB',
+  accent: '#ECFDF5',
 };
 
 const JournalScreen = () => {
   const [entry, setEntry] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth(); // Get the current user from context
-  useActivityTracker('journal');
+  const { user } = useAuth();
+  const { updateUserProgress, saveMoodRating } = useUserData(); // Use the hook for progress/mood
+  const router = useRouter();
+  
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // This hook will automatically track time spent on this screen
+  useActivityTracker('journal'); 
+
+  // --- YOUR ORIGINAL SAVE LOGIC ---
   const handleSave = async () => {
+    if (!user) {
+        Alert.alert("Login Required", "You must be logged in to save entries.");
+        return;
+    }
     if (entry.trim() === '') {
       Alert.alert("Empty Entry", "Please write something before saving.");
       return;
-    }
-    if (!user) {
-        Alert.alert("Not Logged In", "You need to be logged in to save an entry.");
-        return;
     }
 
     setIsLoading(true);
     try {
       // 1. Save the main journal entry
-      await addDoc(collection(db, "journalEntries"), {
-        userId: user.uid,
-        text: entry,
+      const entriesCollectionRef = collection(db, "users", user.uid, "entries");
+      await addDoc(entriesCollectionRef, {
+        content: entry,
         createdAt: serverTimestamp(),
       });
       
-      // 2. Update the daily progress tracker for today
-      const todayString = getTodayDateString();
-      // This creates a document path like: /users/USER_ID/dailyActivities/2025-08-17
-      const activityDocRef = doc(db, 'users', user.uid, 'dailyActivities', todayString);
-      // setDoc with { merge: true } adds or updates the field without overwriting the doc
-      await setDoc(activityDocRef, { journalCompleted: true }, { merge: true });
+      // 2. Update progress using the centralized hook
+      await updateUserProgress(25); // Add 25% for completing a journal entry
       
-      Alert.alert("Saved", "Your journal entry has been saved.", [{ text: "OK", onPress: () => router.back() }]);
+      // 3. On success, show the mood modal
+      setIsModalVisible(true);
 
     } catch (error) {
         console.error("Error saving entry:", error);
@@ -65,66 +70,119 @@ const JournalScreen = () => {
     }
   };
 
-  const swipeBackGesture = Gesture.Fling()
-    .direction(Directions.RIGHT)
-    .onEnd(() => {
-      router.back();
-    });
+  // --- YOUR ORIGINAL MOOD SAVE LOGIC ---
+  const handleSaveMood = async (rating: number) => {
+    await saveMoodRating(rating); // Use the function from the hook
+    Alert.alert("Thank You!", "Your mood has been logged.", [
+        { text: 'OK', onPress: () => {
+            setIsModalVisible(false);
+            setEntry('');
+            router.back();
+        }}
+    ]);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setEntry('');
+    router.back();
+  };
 
   return (
-     <GestureDetector gesture={swipeBackGesture}>
+    <>
+      <MoodModal
+        visible={isModalVisible}
+        onClose={handleCloseModal}
+        onSaveMood={handleSaveMood}
+      />
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardAvoidingContainer}
+          style={{ flex: 1 }}
         >
-          <Text style={styles.prompt}>What's on your mind?</Text>
-          <TextInput
-            style={styles.textInput}
-            multiline
-            placeholder="Start writing..."
-            value={entry}
-            onChangeText={setEntry}
-          />
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isLoading}>
-            {isLoading ? (
-                <ActivityIndicator color={COLORS.background} />
-            ) : (
-                <Text style={styles.saveButtonText}>Save Entry</Text>
-            )}
-          </TouchableOpacity>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.innerContainer}>
+                {/* --- NEW HEADER --- */}
+                <View style={styles.header}>
+                    <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+                        <Feather name="chevron-left" size={28} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                    <Text style={styles.title}>New Entry</Text>
+                    <TouchableOpacity style={styles.headerButton} onPress={handleSave} disabled={isLoading}>
+                        {isLoading ? <ActivityIndicator color={COLORS.primary} /> : <Feather name="check" size={28} color={COLORS.primary} />}
+                    </TouchableOpacity>
+                </View>
+
+                {/* --- REDESIGNED TEXT AREA --- */}
+                <View style={styles.card}>
+                    <TextInput
+                        style={styles.textInput}
+                        multiline
+                        placeholder="What's on your mind?"
+                        placeholderTextColor={COLORS.textSecondary}
+                        value={entry}
+                        onChangeText={setEntry}
+                    />
+                </View>
+            </View>
+          </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </GestureDetector>
+    </>
   );
 };
 
+// --- NEW STYLES MATCHING THE AESTHETIC ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  keyboardAvoidingContainer: { flex: 1, padding: 20 },
-  prompt: { fontSize: 24, fontWeight: 'bold', color: COLORS.text, textAlign: 'center', marginBottom: 20 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  headerButton: {
+    backgroundColor: COLORS.card,
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    padding: 5, // A bit of padding so the inset shadow is visible
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
   textInput: {
     flex: 1,
-    backgroundColor: COLORS.primary,
-    borderRadius: 15,
-    padding: 20,
     fontSize: 16,
-    color: COLORS.text,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: COLORS.secondary,
-  },
-  saveButton: {
-    backgroundColor: COLORS.secondary,
+    color: COLORS.textPrimary,
     padding: 20,
-    borderRadius: 30,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    color: COLORS.background,
-    fontSize: 18,
-    fontWeight: 'bold',
+    textAlignVertical: 'top',
+    backgroundColor: COLORS.background, // Inset look
+    borderRadius: 15,
   },
 });
 

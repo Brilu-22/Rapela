@@ -1,3 +1,5 @@
+// app/SplashScreen.tsx
+
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -9,46 +11,58 @@ import Animated, {
   withSpring,
   withDelay,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
-// Create an animatable version of View for our animations
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-// A refined, Apple-inspired monochromatic palette for the splash screen
 const COLORS = {
-  background: '#000000ff', // A very dark, serene blue-grey
-  primary: '#68D391',   // The main, vibrant but soft green for the leaf
-  secondary: '#F0FFF4', // A very light, almost white green for the text
+  background: '#000000ff',
+  primary: '#68D391',
+  secondary: '#F0FFF4',
 };
 
 const SplashScreen = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   // --- Animation Shared Values ---
-  // For the leaf
-  const leafTranslateY = useSharedValue(-50); // Start leaf above the screen
+  const leafTranslateY = useSharedValue(-50);
   const leafOpacity = useSharedValue(0);
-
-  // For the staggered text
-  const textTranslateY = [...'Dulce'].map(() => useSharedValue(20)); // Start letters below final position
+  const textTranslateY = [...'Dulce'].map(() => useSharedValue(20));
   const textOpacity = [...'Dulce'].map(() => useSharedValue(0));
-
-  // For the final fade-out of the entire screen
   const containerOpacity = useSharedValue(1);
 
-  useEffect(() => {
-    // --- PART 1: ANIMATE IN ---
+  // ---> ADD: New animated values for the slogan <---
+  const sloganOpacity = useSharedValue(0);
+  const sloganTranslateY = useSharedValue(10); // Start slightly below
 
-    // Leaf "drops and breathes" animation
+  useEffect(() => {
+    const navigateAfterAnimation = () => {
+      const destination = user ? '/home' : '/login';
+      containerOpacity.value = withDelay(
+        500,
+        withTiming(0, { 
+          duration: 500,
+          easing: Easing.in(Easing.ease),
+        }, (finished) => {
+          if (finished) {
+            runOnJS(router.replace)(destination);
+          }
+        })
+      );
+    };
+
+    // --- PART 1: ANIMATE IN ---
     leafOpacity.value = withTiming(1, { duration: 1000 });
     leafTranslateY.value = withSequence(
-      withSpring(0, { damping: 12, stiffness: 90 }), // Drop into place
-      withDelay(500, withSpring(10, { damping: 15, stiffness: 100 })), // Subtle "exhale"
-      withSpring(0, { damping: 15, stiffness: 100 })   // "Inhale" back to center
+      withSpring(0, { damping: 12, stiffness: 90 }),
+      withDelay(500, withSpring(10, { damping: 15, stiffness: 100 })),
+      withSpring(0, { damping: 15, stiffness: 100 })
     );
     
-    // Staggered text reveal animation (each letter slides up and fades in)
     textOpacity.forEach((opacity, i) => {
       opacity.value = withDelay(800 + i * 150, withTiming(1, { duration: 600 }));
     });
@@ -56,41 +70,45 @@ const SplashScreen = () => {
       translate.value = withDelay(800 + i * 150, withSpring(0, { damping: 15 }));
     });
 
-    // --- PART 2: ANIMATE OUT (THE KEY FOR A SMOOTH TRANSITION) ---
-    const fadeOutDelay = 3300; // Time in milliseconds before the fade-out begins
+    // ---> ADD: Trigger the slogan animation after the main title <---
+    // The main title finishes appearing around 2000ms. We'll start this at 2200ms.
+    sloganOpacity.value = withDelay(2200, withTiming(1, { duration: 800 }));
+    sloganTranslateY.value = withDelay(2200, withSpring(0, { damping: 15 }));
 
-    containerOpacity.value = withDelay(
-      fadeOutDelay, 
-      withTiming(0, { 
-        duration: 500, // The fade-out animation takes 0.5 seconds
-        easing: Easing.in(Easing.ease),
-      })
-    );
 
-    // --- PART 3: NAVIGATE AWAY ---
-    // Navigate to the login screen precisely when the fade-out animation finishes.
-    const navigationTimer = setTimeout(() => {
-      router.replace('/login');
-    }, fadeOutDelay + 500); // 3300ms + 500ms = 3.8 seconds total
+    // --- PART 2: DECIDE WHEN TO NAVIGATE ---
+    const navigationDelay = 3500; // Slightly increased delay to let slogan appear
 
-    // Cleanup the timer if the component unmounts for any reason
-    return () => clearTimeout(navigationTimer);
-  }, []);
+    const timer = setTimeout(() => {
+        if (!loading) {
+            navigateAfterAnimation();
+        }
+    }, navigationDelay);
+
+    if (!loading) {
+        const immediateTimer = setTimeout(navigateAfterAnimation, navigationDelay);
+        return () => clearTimeout(immediateTimer);
+    }
+    
+    return () => clearTimeout(timer);
+
+  }, [loading, user]);
 
   // --- Animated Styles ---
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    opacity: containerOpacity.value,
+  }));
   
-  // Style for the entire screen's fade-out
-  const animatedContainerStyle = useAnimatedStyle(() => {
+  const animatedLeafStyle = useAnimatedStyle(() => ({
+    opacity: leafOpacity.value,
+    transform: [{ translateY: leafTranslateY.value }],
+  }));
+
+  // ---> ADD: New animated style for the slogan <---
+  const animatedSloganStyle = useAnimatedStyle(() => {
     return {
-      opacity: containerOpacity.value,
-    };
-  });
-  
-  // Style for the leaf's drop-in and breathing
-  const animatedLeafStyle = useAnimatedStyle(() => {
-    return {
-      opacity: leafOpacity.value,
-      transform: [{ translateY: leafTranslateY.value }],
+      opacity: sloganOpacity.value,
+      transform: [{ translateY: sloganTranslateY.value }],
     };
   });
 
@@ -102,13 +120,10 @@ const SplashScreen = () => {
 
       <View style={styles.titleContainer}>
         {[...'Dulce'].map((letter, index) => {
-          // Create a unique animated style for each letter inside the map
-          const animatedLetterStyle = useAnimatedStyle(() => {
-            return {
-              opacity: textOpacity[index].value,
-              transform: [{ translateY: textTranslateY[index].value }],
-            };
-          });
+          const animatedLetterStyle = useAnimatedStyle(() => ({
+            opacity: textOpacity[index].value,
+            transform: [{ translateY: textTranslateY[index].value }],
+          }));
           return (
             <AnimatedView key={index} style={animatedLetterStyle}>
               <Text style={styles.title}>{letter}</Text>
@@ -116,6 +131,12 @@ const SplashScreen = () => {
           );
         })}
       </View>
+      
+      {/* ---> ADD: The slogan component itself <--- */}
+      <AnimatedView style={animatedSloganStyle}>
+        <Text style={styles.slogan}>Keeping in perfect peace - Isaiah 26:3</Text>
+      </AnimatedView>
+
     </AnimatedView>
   );
 };
@@ -137,6 +158,16 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     letterSpacing: 2,
   },
+  // ---> ADD: New style for the slogan text <---
+  slogan: {
+    marginTop: 12,
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: COLORS.secondary,
+    opacity: 0.8, // Slightly more subtle than the main title
+    textAlign: 'center',
+    paddingHorizontal: 20, // Add padding in case it wraps on small screens
+  }
 });
 
 export default SplashScreen;

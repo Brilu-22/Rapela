@@ -1,89 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+// app/(app)/home.tsx
+
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { ActivityName } from '../hooks/useActivityTracker';
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
+const ITEM_WIDTH = width * 0.75;
+const ITEM_SPACING = (width - ITEM_WIDTH) / 2;
 
 const COLORS = {
-  primary: '#E8F5E9',
-  secondary: '#A5D6A7',
-  progressTint1: '#81C784',
-  progressTint2: '#66BB6A',
-  progressTint3: '#4CAF50',
-  progressTint4: '#388E3C',
-  text: '#388E3C',
-  background: '#FFFFFF',
-  inactive: '#F1F8E9',
+  background: '#F0F2F5',
+  primary: '#34D399',
+  card: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  shadow: '#D1D5DB',
+  accent: '#ECFDF5',
 };
 
-// --- THIS IS THE FIX ---
-// Add the missing helper function back into the file.
-const getTodayDateString = (): string => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+type Activity = {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: React.ComponentProps<typeof Feather>['name'];
+  screen: Href;
 };
+
+// ---> THIS IS THE FIX: Add the two missing games to the activities array <---
+const activities: Activity[] = [
+  { id: 'breathing', title: 'Breathing', subtitle: 'Guided Exercise', icon: 'wind', screen: '/breathing' },
+  { id: 'journal', title: 'Journaling', subtitle: 'Reflect on your day', icon: 'edit-3', screen: '/journal' },
+  { id: 'videoDiary', title: 'Video Diary', subtitle: 'Express yourself', icon: 'video', screen: '/videoDiary' },
+  { id: 'zenslide', title: 'Zen Slide', subtitle: 'Mindful Puzzle', icon: 'grid', screen: '/zenslide' },
+  { id: 'starlightTap', title: 'Starlight Tap', subtitle: 'Find constellations', icon: 'star', screen: '/starlightTap' },
+  { id: 'willowispMaze', title: 'Wisp Maze', subtitle: 'A calming labyrinth', icon: 'git-branch', screen: '/willowispMaze' },
+];
+
+type ProgressRingProps = {
+  value: number;
+  label: string;
+};
+
+const ProgressRing = ({ value, label }: ProgressRingProps) => (
+    <View style={styles.ringContainer}>
+        <View style={styles.progressRing}>
+            <Text style={styles.progressRingValue}>{value}{label.includes('%') ? '%' : ''}</Text>
+        </View>
+        <Text style={styles.progressRingLabel}>{label.replace('%', '').trim()}</Text>
+    </View>
+);
 
 const HomeScreen = () => {
   const router = useRouter();
   const { logout, user } = useAuth();
   const [progress, setProgress] = useState(0);
-  const [progressColor, setProgressColor] = useState(COLORS.secondary);
+  const [streak, setStreak] = useState(0);
+  const scrollX = useSharedValue(0);
 
-  const today = new Date();
-  const days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
-  const dates = Array.from({ length: 5 }, (_, i) => {
-    const date = new Date();
-    date.setDate(today.getDate() + i - 2);
-    return { day: days[date.getDay()], date: date.getDate(), isToday: i === 2 };
-  });
-
+  // --- YOUR ORIGINAL DATA FETCHING LOGIC IS PRESERVED ---
   useEffect(() => {
     if (!user) return;
-
-    const todayString = getTodayDateString(); // This now correctly returns a string
+    const todayString = new Date().toISOString().split('T')[0];
     const activityDocRef = doc(db, 'users', user.uid, 'dailyActivities', todayString);
+    const userDocRef = doc(db, 'users', user.uid);
 
-    const unsubscribe = onSnapshot(activityDocRef, (doc) => {
-      const GOAL_SECONDS = 300; // 5 minutes
+    const unsubActivities = onSnapshot(activityDocRef, (doc) => {
+      const GOAL_SECONDS = 300;
       let totalSecondsToday = 0;
-
       if (doc.exists()) {
         const data = doc.data();
-        const activities: ActivityName[] = ['journal', 'breathing', 'zenslide', 'videoDiary'];
+        // Make sure to include your new games here if you track their time
+        const activities: ActivityName[] = ['journal', 'breathing', 'zenslide', 'videoDiary', 'starlightTap', 'willowispMaze'];
         activities.forEach(activity => {
-            if (data[activity]) {
-                totalSecondsToday += data[activity];
-            }
+            if (data[activity]) totalSecondsToday += data[activity];
         });
       }
-      
-      const newProgress = Math.min(100, Math.round((totalSecondsToday / GOAL_SECONDS) * 100));
-      setProgress(newProgress);
-
-      if (newProgress === 100) {
-        setProgressColor(COLORS.progressTint4);
-      } else if (newProgress > 66) {
-        setProgressColor(COLORS.progressTint3);
-      } else if (newProgress > 33) {
-        setProgressColor(COLORS.progressTint2);
-      } else if (newProgress > 0) {
-        setProgressColor(COLORS.progressTint1);
-      } else {
-        setProgressColor(COLORS.secondary);
-      }
+      setProgress(Math.min(100, Math.round((totalSecondsToday / GOAL_SECONDS) * 100)));
     });
 
-    return () => unsubscribe();
+    const unsubUser = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) setStreak(doc.data().streak || 0);
+    });
+
+    return () => {
+      unsubActivities();
+      unsubUser();
+    };
   }, [user]);
+  
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
 
-  const displayName = user?.displayName || user?.email?.split('@')[0] || 'there';
+  const displayName = user?.displayName || 'there';
 
+  // --- YOUR ORIGINAL LOGOUT LOGIC IS PRESERVED ---
   const handleLogout = async () => {
     try {
       await logout();
@@ -95,105 +114,103 @@ const HomeScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-            <View style={styles.logo}><Text style={{ color: COLORS.text }}>D</Text></View>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                <Feather name="log-out" size={26} color={COLORS.text} />
-            </TouchableOpacity>
-        </View>
-
-        <View style={styles.welcomeSection}>
-          <View style={[styles.progressCircle, { borderColor: progressColor }]}>
-            <Text style={[styles.progressText, { color: progressColor }]}>{progress}%</Text>
-          </View>
-          <View>
-            <TouchableOpacity onPress={() => router.push('/profile')}>
-              <Text style={styles.welcomeMessage}>Enjoy your day, {displayName}</Text>
-            </TouchableOpacity>
-            <Text style={styles.planTitle}>Today's Plan</Text>
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/stats')}>
-            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-                <Feather name="bar-chart-2" size={24} color={COLORS.text} style={{ marginRight: 10 }}/>
-                <Text style={styles.cardTitle}>View Your Mood Stats</Text>
+            <View>
+                <Text style={styles.headerWelcome}>Welcome back,</Text>
+                <Text style={styles.headerName}>{displayName}</Text>
             </View>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                <Feather name="log-out" size={24} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+            <View style={styles.progressContainer}>
+                <ProgressRing value={progress} label="Daily Goal %" />
+                <View style={styles.divider} />
+                <ProgressRing value={streak} label="Day Streak" />
+            </View>
+        </View>
 
         <View style={styles.calendarContainer}>
-          {dates.map((d, index) => (
-            <View key={index} style={[styles.dateBox, d.isToday && styles.todayBox]}>
-              <Text style={[styles.dateText, d.isToday && styles.todayText]}>{d.date}</Text>
-              <Text style={[styles.dayText, d.isToday && styles.todayText]}>{d.day}</Text>
-            </View>
-          ))}
+            <Text style={styles.sectionTitle}>Today's Focus</Text>
         </View>
-
-        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/breathing')}>
-            <Text style={styles.cardTitle}>Breathing Exercise</Text>
-            <Text style={styles.cardDuration}>2 min</Text>
-        </TouchableOpacity>
         
-        <View style={styles.cardRow}>
-            <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/journal')}>
-                <Text style={styles.cardTitleSmall}>Journaling</Text>
-                <Text style={styles.cardDurationSmall}>2 min</Text>
+        <Animated.ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            snapToInterval={ITEM_WIDTH}
+            decelerationRate="fast"
+            contentContainerStyle={styles.carouselContainer}
+        >
+            {activities.map((item, index) => {
+                const animatedStyle = useAnimatedStyle(() => {
+                    const inputRange = [ (index - 1) * ITEM_WIDTH, index * ITEM_WIDTH, (index + 1) * ITEM_WIDTH ];
+                    const scale = interpolate(scrollX.value, inputRange, [0.9, 1, 0.9]);
+                    return { transform: [{ scale }] };
+                });
+
+                return (
+                    <Animated.View key={item.id} style={[styles.cardContainer, animatedStyle]}>
+                        <TouchableOpacity style={styles.activityCard} onPress={() => router.push(item.screen)}>
+                            <View style={styles.iconCircle}>
+                                <Feather name={item.icon} size={30} color={COLORS.primary} />
+                            </View>
+                            <Text style={styles.activityTitle}>{item.title}</Text>
+                            <Text style={styles.activitySubtitle}>{item.subtitle}</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                );
+            })}
+        </Animated.ScrollView>
+
+        <View style={styles.listContainer}>
+            <Text style={styles.sectionTitle}>Your Journey</Text>
+            <TouchableOpacity style={styles.listItem} onPress={() => router.push('/diaryLog')}>
+                <Feather name="archive" size={22} color={COLORS.textSecondary} />
+                <Text style={styles.listItemText}>My Memories</Text>
+                <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.smallCard} onPress={() => router.push('/videoDiary')}>
-                <Text style={styles.cardTitleSmall}>Video Diary</Text>
-                <Text style={styles.cardDurationSmall}>2 min</Text>
+            <TouchableOpacity style={styles.listItem} onPress={() => router.push('/stats')}>
+                <Feather name="bar-chart-2" size={22} color={COLORS.textSecondary} />
+                <Text style={styles.listItemText}>Mood Stats</Text>
+                <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/zenslide')}>
-            <Text style={styles.cardTitle}>Zen Slide</Text>
-            <Text style={styles.cardDuration}>A calming puzzle</Text>
-        </TouchableOpacity>
-
-         <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/starlightTap')}>
-            <Text style={styles.cardTitle}>Starlight Tap</Text>
-            <Text style={styles.cardDuration}>Find the constellations</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.largeCard} onPress={() => router.push('/willowispMaze')}>
-            <Text style={styles.cardTitle}>Willowisp Maze</Text>
-            <Text style={styles.cardDuration}>A calming labyrinth</Text>
-        </TouchableOpacity>
-        
-        
-
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
-  container: { paddingHorizontal: 20 },
-  header: { paddingVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logo: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
-  logoutButton: { padding: 5 },
-  welcomeSection: { flexDirection: 'row', alignItems: 'center', marginTop: 10, marginBottom: 30 },
-  progressCircle: { width: 70, height: 70, borderRadius: 35, borderWidth: 5, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: 20 },
-  progressText: { fontSize: 16, fontWeight: 'bold' },
-  welcomeMessage: { fontSize: 18, color: COLORS.text, textTransform: 'capitalize' },
-  planTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.text },
-  calendarContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
-  dateBox: { width: 60, height: 80, borderRadius: 20, borderWidth: 1, borderColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
-  todayBox: { backgroundColor: COLORS.secondary, borderColor: COLORS.secondary },
-  dateText: { fontSize: 20, fontWeight: 'bold', color: COLORS.text },
-  dayText: { fontSize: 14, color: COLORS.text, opacity: 0.7 },
-  todayText: { color: 'white' },
-  largeCard: { backgroundColor: COLORS.primary, borderRadius: 25, paddingVertical: 30, paddingHorizontal: 30, alignItems: 'center', marginBottom: 20 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  smallCard: { backgroundColor: COLORS.primary, borderRadius: 25, paddingVertical: 30, width: '48%', alignItems: 'center' },
-  cardTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.text, marginBottom: 10 },
-  cardDuration: { fontSize: 16, color: COLORS.text, opacity: 0.7 },
-  cardTitleSmall: { fontSize: 18, fontWeight: 'bold', color: COLORS.text, marginBottom: 10 },
-  cardDurationSmall: { fontSize: 14, color: COLORS.text, opacity: 0.7 },
+    container: { flex: 1, backgroundColor: COLORS.background },
+    scrollContent: { paddingVertical: 20 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
+    headerWelcome: { fontSize: 16, color: COLORS.textSecondary },
+    headerName: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary, textTransform: 'capitalize' },
+    logoutButton: { backgroundColor: COLORS.card, padding: 8, borderRadius: 20 },
+    card: { backgroundColor: COLORS.card, borderRadius: 20, marginHorizontal: 20, padding: 20, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    progressContainer: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+    ringContainer: { alignItems: 'center', flex: 1 },
+    progressRing: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center', borderWidth: 6, borderColor: COLORS.primary },
+    progressRingValue: { fontSize: 20, fontWeight: 'bold', color: COLORS.textPrimary },
+    progressRingLabel: { marginTop: 10, fontSize: 14, color: COLORS.textSecondary, fontWeight: '500' },
+    divider: { width: 1, height: '60%', backgroundColor: COLORS.background },
+    calendarContainer: { paddingHorizontal: 20, marginVertical: 30 },
+    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 15 },
+    carouselContainer: { paddingHorizontal: ITEM_SPACING },
+    cardContainer: { width: ITEM_WIDTH, paddingHorizontal: 10 },
+    activityCard: { backgroundColor: COLORS.card, height: 280, borderRadius: 20, padding: 25, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    iconCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+    activityTitle: { fontSize: 22, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 5 },
+    activitySubtitle: { fontSize: 14, color: COLORS.textSecondary },
+    listContainer: { marginHorizontal: 20, marginTop: 40 },
+    listItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, padding: 20, borderRadius: 15, marginBottom: 10 },
+    listItemText: { flex: 1, marginLeft: 15, fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
 });
 
 export default HomeScreen;

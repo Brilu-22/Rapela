@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // Use getFirestore for Cloud Firestore
+import { getFirestore } from "firebase/firestore"; 
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -23,3 +24,4 @@ export const auth = getAuth(app);
 // --- THIS IS THE KEY FIX ---
 // Initialize Cloud Firestore and export it as 'db'
 export const db = getFirestore(app);
+export const storage = getStorage(app);

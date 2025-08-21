@@ -12,22 +12,16 @@ const COLORS = {
   background: '#FFFFFF',
 };
 
-// Get the screen width for responsive charts
 const screenWidth = Dimensions.get('window').width;
 
-// Define a type for our chart data structure for better type safety
 interface ChartData {
   labels: string[];
-  datasets: [{
-    data: number[];
-  }];
+  datasets: [{ data: number[] }];
 }
 
-// Define a type for the raw mood data we fetch from Firestore
 interface MoodEntry {
   rating: number;
   date: string;
-  timestamp: Timestamp;
 }
 
 const StatsScreen = () => {
@@ -46,7 +40,6 @@ const StatsScreen = () => {
       }
 
       try {
-        // Query to get all mood entries for the current user, ordered by date
         const moodQuery = query(
           collection(db, "moodEntries"),
           where("userId", "==", user.uid),
@@ -54,22 +47,26 @@ const StatsScreen = () => {
         );
 
         const querySnapshot = await getDocs(moodQuery);
-        const fetchedEntries: MoodEntry[] = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            rating: data.rating,
-            date: data.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            timestamp: data.createdAt,
-          };
+        
+        // --- ADDED SAFETY CHECKS ---
+        const fetchedEntries: MoodEntry[] = [];
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            // Only process entries that have a valid rating and timestamp
+            if (data && typeof data.rating === 'number' && data.createdAt instanceof Timestamp) {
+                fetchedEntries.push({
+                    rating: data.rating,
+                    date: data.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                });
+            }
         });
 
         if (fetchedEntries.length === 0) {
             setLoading(false);
-            return; // No data to process
+            return;
         }
         
         // --- Process data for the Daily Mood Bar Chart ---
-        // We'll show the last 7 entries for clarity
         const recentEntries = fetchedEntries.slice(-7);
         setDailyData({
           labels: recentEntries.map(entry => entry.date),
@@ -77,21 +74,25 @@ const StatsScreen = () => {
         });
 
         // --- Process data for the 3-Day Average Line Chart ---
-        const threeDayLabels: string[] = [];
-        const threeDayAverages: number[] = [];
-        for (let i = 0; i < fetchedEntries.length; i += 3) {
-          const chunk = fetchedEntries.slice(i, i + 3);
-          if (chunk.length > 0) {
-            const sum = chunk.reduce((acc, curr) => acc + curr.rating, 0);
-            const average = sum / chunk.length;
-            threeDayAverages.push(parseFloat(average.toFixed(2))); // Round to 2 decimal places
-            threeDayLabels.push(chunk[chunk.length - 1].date); // Label the chunk with the last date
+        if (fetchedEntries.length > 0) {
+          const threeDayLabels: string[] = [];
+          const threeDayAverages: number[] = [];
+          for (let i = 0; i < fetchedEntries.length; i += 3) {
+            const chunk = fetchedEntries.slice(i, i + 3);
+            if (chunk.length > 0) {
+              const sum = chunk.reduce((acc, curr) => acc + curr.rating, 0);
+              const average = sum / chunk.length;
+              threeDayAverages.push(parseFloat(average.toFixed(2)));
+              threeDayLabels.push(chunk[chunk.length - 1].date);
+            }
+          }
+          if (threeDayAverages.length > 1) { // Only show line chart if there's a trend to see
+             setThreeDayData({
+                labels: threeDayLabels,
+                datasets: [{ data: threeDayAverages }],
+             });
           }
         }
-        setThreeDayData({
-          labels: threeDayLabels,
-          datasets: [{ data: threeDayAverages }],
-        });
 
       } catch (err) {
         console.error("Error fetching mood data:", err);
@@ -104,13 +105,12 @@ const StatsScreen = () => {
     fetchMoodData();
   }, [user]);
 
-  // Configuration for the charts' appearance
   const chartConfig = {
     backgroundColor: COLORS.primary,
     backgroundGradientFrom: COLORS.primary,
     backgroundGradientTo: '#D6EFD8',
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(56, 142, 60, ${opacity})`, // COLORS.text
+    color: (opacity = 1) => `rgba(56, 142, 60, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(56, 142, 60, ${opacity})`,
     style: { borderRadius: 16 },
     propsForDots: { r: "4", strokeWidth: "2", stroke: COLORS.secondary },
@@ -124,7 +124,7 @@ const StatsScreen = () => {
     return <SafeAreaView style={styles.container}><Text style={styles.messageText}>{error}</Text></SafeAreaView>;
   }
   
-  if (!dailyData && !threeDayData) {
+  if (!dailyData) {
     return <SafeAreaView style={styles.container}><Text style={styles.messageText}>No mood data recorded yet. Complete a journal entry to start tracking.</Text></SafeAreaView>;
   }
 
@@ -135,21 +135,21 @@ const StatsScreen = () => {
 
         {dailyData && (
           <View style={styles.chartContainer}>
-            <Text style={styles.chartTitle}>Recent Daily Mood (1=Low, 3=High)</Text>
+            <Text style={styles.chartTitle}>Recent Daily Mood (1=Low, 5=High)</Text>
             <BarChart
               data={dailyData}
-              width={screenWidth - 32} // padding on both sides
+              width={screenWidth - 32}
               height={220}
               chartConfig={chartConfig}
+              fromZero
               yAxisLabel=""
               yAxisSuffix=""
-              fromZero
               style={styles.chartStyle}
             />
           </View>
         )}
 
-        {threeDayData && threeDayData.labels.length > 1 && (
+        {threeDayData && (
           <View style={styles.chartContainer}>
             <Text style={styles.chartTitle}>3-Day Mood Average Trend</Text>
             <LineChart
@@ -157,7 +157,7 @@ const StatsScreen = () => {
               width={screenWidth - 32}
               height={220}
               chartConfig={chartConfig}
-              bezier // Makes the line smooth
+              bezier
               style={styles.chartStyle}
             />
           </View>
@@ -168,39 +168,13 @@ const StatsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 24,
-  },
-  chartContainer: {
-    marginBottom: 32,
-    alignItems: 'center',
-  },
-  chartTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  chartStyle: {
-    borderRadius: 16,
-  },
-  messageText: {
-    fontSize: 16,
-    color: COLORS.text,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  }
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { padding: 16, alignItems: 'center' },
+  headerTitle: { fontSize: 26, fontWeight: 'bold', color: COLORS.text, marginBottom: 24 },
+  chartContainer: { marginBottom: 32, alignItems: 'center' },
+  chartTitle: { fontSize: 18, fontWeight: '600', color: COLORS.text, marginBottom: 12 },
+  chartStyle: { borderRadius: 16 },
+  messageText: { fontSize: 16, color: COLORS.text, textAlign: 'center', paddingHorizontal: 20 }
 });
 
 export default StatsScreen;
