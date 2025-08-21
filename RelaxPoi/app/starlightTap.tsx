@@ -1,13 +1,14 @@
 // app/(app)/starlightTap.tsx
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, TouchableOpacity, Alert, Platform } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useActivityTracker } from '../hooks/useActivityTracker';
-import Animated, { useSharedValue, useAnimatedProps, runOnJS } from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
+// ---> FIX: Corrected import path assuming components folder is at the root <---
+import { CompletionModal } from '../components/completitionModal';
 
 const { width } = Dimensions.get('window');
 const SKY_CONTAINER_WIDTH = width * 0.9;
@@ -25,10 +26,11 @@ const COLORS = {
   starInactive: '#D1D5DB',
   starActive: '#FBBF24',
   constellationLine: '#6EE7B7',
-  lineDrawing: '#A7F3D0',
+  error: '#F87171',
 };
 
 const CONSTELLATIONS = [
+  // ... your 10 constellations ...
   { name: 'The Arrow', stars: [ { x: 0.5, y: 0.2 }, { x: 0.5, y: 0.5 }, { x: 0.5, y: 0.8 } ] },
   { name: 'The Triangle', stars: [ { x: 0.5, y: 0.25 }, { x: 0.3, y: 0.6 }, { x: 0.7, y: 0.6 } ] },
   { name: 'The Hook', stars: [ { x: 0.2, y: 0.3 }, { x: 0.5, y: 0.3 }, { x: 0.5, y: 0.6 }, { x: 0.8, y: 0.6 } ] },
@@ -41,166 +43,129 @@ const CONSTELLATIONS = [
   { name: 'The Phoenix', stars: [ { x: 0.5, y: 0.1 }, { x: 0.4, y: 0.3 }, { x: 0.6, y: 0.3 }, { x: 0.5, y: 0.5 }, { x: 0.3, y: 0.7 }, { x: 0.7, y: 0.7 }, { x: 0.4, y: 0.9 }, { x: 0.6, y: 0.9 } ] },
 ];
 
-const AnimatedLine = Animated.createAnimatedComponent(Line);
-
-const StarlightSwipeGame = () => {
+const StarlightTapGame = () => {
   useActivityTracker('starlightTap');
   const router = useRouter();
   const [level, setLevel] = useState(0);
-  const [drawnPath, setDrawnPath] = useState<number[]>([]);
+  const [tappedPath, setTappedPath] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [isDrawing, setIsDrawing] = useState(false);
+  
+  // ---> FIX 1: Define the state and handler function here, at the top level <---
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const lineToX = useSharedValue(0);
-  const lineToY = useSharedValue(0);
+  const handleResetGame = () => {
+    setIsModalVisible(false);
+    setTimeout(() => {
+      setLevel(0);
+    }, 300); // Delay allows modal to animate out
+  };
 
-  // Memoize the current constellation to ensure it's stable during re-renders
-  const currentConstellation = useMemo(() => CONSTELLATIONS[level], [level]);
+  const currentConstellation = CONSTELLATIONS[level];
 
   const setupLevel = useCallback((levelIndex: number) => {
-    setDrawnPath([]);
+    setTappedPath([]);
     setIsCompleted(false);
-    setIsDrawing(false);
   }, []);
 
   useEffect(() => {
     setupLevel(level);
   }, [level, setupLevel]);
 
-  const isFingerOverStar = (fingerX: number, fingerY: number, starIndex: number) => {
-    // Safety check
-    if (!currentConstellation || !currentConstellation.stars[starIndex]) {
-        return false;
-    }
-    const star = currentConstellation.stars[starIndex];
-    const starX = star.x * SKY_CONTAINER_WIDTH;
-    const starY = star.y * SKY_CONTAINER_HEIGHT;
-    const distance = Math.sqrt(Math.pow(fingerX - starX, 2) + Math.pow(fingerY - starY, 2));
-    return distance < STAR_RADIUS * 1.5;
-  };
+  const handleStarTap = (tappedIndex: number) => {
+    if (isCompleted) return;
+    const nextIndexInSequence = tappedPath.length;
 
-  const panGesture = Gesture.Pan()
-    .onStart((event) => {
-      // Safety check
-      if (!currentConstellation) return;
-      if (drawnPath.length === 0 && isFingerOverStar(event.x, event.y, 0)) {
-        const firstStar = currentConstellation.stars[0];
-        // Safety check
-        if (!firstStar) return;
-        lineToX.value = firstStar.x * SKY_CONTAINER_WIDTH;
-        lineToY.value = firstStar.y * SKY_CONTAINER_HEIGHT;
-        runOnJS(setIsDrawing)(true);
-        runOnJS(setDrawnPath)([0]);
-      }
-    })
-    .onUpdate((event) => {
-      // Safety check
-      if (!isDrawing || !currentConstellation) return;
-      lineToX.value = event.x;
-      lineToY.value = event.y;
-      const nextStarIndex = drawnPath.length;
-      if (nextStarIndex < currentConstellation.stars.length) {
-        if (isFingerOverStar(event.x, event.y, nextStarIndex)) {
-          runOnJS(setDrawnPath)((currentPath) => [...currentPath, nextStarIndex]);
-        }
-      }
-    })
-    .onEnd(() => {
-      // Safety check
-      if (!isDrawing) return;
-      runOnJS(setIsDrawing)(false);
-      
-      if (drawnPath.length === currentConstellation.stars.length) {
-        runOnJS(setIsCompleted)(true);
+    if (tappedIndex === nextIndexInSequence) {
+      const newPath = [...tappedPath, tappedIndex];
+      setTappedPath(newPath);
+
+      if (newPath.length === currentConstellation.stars.length) {
+        setIsCompleted(true);
         setTimeout(() => {
           if (level < CONSTELLATIONS.length - 1) {
-            runOnJS(setLevel)(level + 1);
+            setLevel(prev => prev + 1);
           } else {
-            runOnJS(Alert.alert)("Journey's End", "You've charted all the constellations.", [
-              { text: 'Begin Anew', onPress: () => setLevel(0) }
-            ]);
+            // ---> FIX 2: Call the state setter function to show the modal <---
+            setIsModalVisible(true);
           }
         }, 1500);
-      } else {
-        runOnJS(setDrawnPath)([]);
       }
-    });
-
-  const animatedLineProps = useAnimatedProps(() => {
-    return {
-      x2: lineToX.value,
-      y2: lineToY.value,
-    };
-  });
+    } else {
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+      setTappedPath([]);
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <Feather name="chevron-left" size={28} color={COLORS.textSecondary} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Starlight Swipe</Text>
-        <View style={styles.levelIndicator}>
-            <Text style={styles.levelText}>Level {level + 1}</Text>
+    // Use a React Fragment <> to return multiple components at the same level
+    <>
+      {/* ---> FIX 3: Render the modal here, in the main return statement <--- */}
+      <CompletionModal
+        visible={isModalVisible}
+        title="Journey's End"
+        message="You've charted all the constellations for tonight."
+        buttonText="Begin Anew"
+        onButtonPress={handleResetGame}
+      />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+            <Feather name="chevron-left" size={28} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Starlight Tap</Text>
+          <View style={styles.levelIndicator}>
+              <Text style={styles.levelText}>Level {level + 1}</Text>
+          </View>
         </View>
-      </View>
-      
-      <GestureDetector gesture={panGesture}>
+        
         <View style={styles.skyContainer}>
           <Svg style={StyleSheet.absoluteFill}>
-            {drawnPath.map((starIndex, i) => {
+            {tappedPath.map((starIndex, i) => {
               if (i === 0) return null;
-              const prevStar = currentConstellation?.stars[drawnPath[i - 1]];
-              const currentStar = currentConstellation?.stars[starIndex];
-              // Safety check
+              const prevStar = currentConstellation.stars[tappedPath[i - 1]];
+              const currentStar = currentConstellation.stars[starIndex];
               if (!prevStar || !currentStar) return null;
               return (
                 <Line
                   key={`line-${i}`}
                   x1={prevStar.x * SKY_CONTAINER_WIDTH} y1={prevStar.y * SKY_CONTAINER_HEIGHT}
                   x2={currentStar.x * SKY_CONTAINER_WIDTH} y2={currentStar.y * SKY_CONTAINER_HEIGHT}
-                  stroke={isCompleted ? COLORS.constellationLine : COLORS.lineDrawing}
+                  stroke={isCompleted ? COLORS.constellationLine : COLORS.primary}
                   strokeWidth="3"
                   strokeLinecap="round"
                 />
               );
             })}
-            {isDrawing && drawnPath.length > 0 && currentConstellation?.stars[drawnPath[drawnPath.length - 1]] && (
-              <AnimatedLine
-                x1={currentConstellation.stars[drawnPath[drawnPath.length - 1]].x * SKY_CONTAINER_WIDTH}
-                y1={currentConstellation.stars[drawnPath[drawnPath.length - 1]].y * SKY_CONTAINER_HEIGHT}
-                animatedProps={animatedLineProps}
-                stroke={COLORS.primary}
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            )}
           </Svg>
 
-          {currentConstellation?.stars.map((star, index) => {
-             const isTapped = drawnPath.includes(index);
-             const isNext = !isCompleted && drawnPath.length === index;
-             return (
-                <View
-                    key={index}
-                    style={[
-                        styles.star,
-                        { left: star.x * SKY_CONTAINER_WIDTH - STAR_RADIUS, top: star.y * SKY_CONTAINER_HEIGHT - STAR_RADIUS },
-                        isTapped && styles.starActive,
-                        isNext && styles.starNext,
-                    ]}
-                />
-             );
+          {currentConstellation.stars.map((star, index) => {
+              const isTapped = tappedPath.includes(index);
+              const isNext = !isCompleted && tappedPath.length === index;
+              return (
+                  <TouchableOpacity
+                      key={index}
+                      style={[
+                          styles.star,
+                          { left: star.x * SKY_CONTAINER_WIDTH - STAR_RADIUS, top: star.y * SKY_CONTAINER_HEIGHT - STAR_RADIUS },
+                          isTapped && styles.starActive,
+                          isNext && styles.starNext,
+                      ]}
+                      onPress={() => handleStarTap(index)}
+                      activeOpacity={0.7}
+                  />
+              );
           })}
         </View>
-      </GestureDetector>
 
-      <View style={styles.footer}>
-        <Text style={styles.instructions}>
-          {isCompleted ? `You found ${currentConstellation?.name}!` : 'Press and drag to connect the stars.'}
-        </Text>
-      </View>
-    </SafeAreaView>
+        <View style={styles.footer}>
+          <Text style={styles.instructions}>
+            {isCompleted ? `You found ${currentConstellation.name}!` : 'Tap the stars in order to connect them.'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -284,4 +249,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StarlightSwipeGame;
+export default StarlightTapGame;

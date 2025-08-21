@@ -6,26 +6,26 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
-// --- "WARM TERRACOTTA & MOSS" PALETTE ---
+// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
 const COLORS = {
-  background: '#FBF9F6',
-  primary: '#D97706',
-  subtle: '#FEF3C7',
-  white: '#FFFFFF',
-  shadowDark: '#E7E5E4',
-  textPrimary: '#57534E',
-  textSecondary: '#A8A29E',
+  background: '#F0F2F5',
+  primary: '#34D399',
+  card: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  shadow: '#D1D5DB',
+  accent: '#ECFDF5',
+  white: '#FFFFFF', // ---> THIS IS THE FIX <---
 };
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // --- RESTORED: Getting both login functions from your context ---
   const { login, loginAnonymously } = useAuth();
   const router = useRouter();
 
-  // --- RESTORED: YOUR ORIGINAL handleLogin LOGIC ---
+  // --- YOUR ORIGINAL LOGIN LOGIC (UNCHANGED) ---
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Input Required", "Please enter both email and password.");
@@ -34,7 +34,7 @@ const LoginScreen = () => {
     setIsLoading(true);
     try {
       await login(email, password);
-      router.replace('/home'); // Your navigation logic
+      router.replace('/home'); // Or '/(app)/home' if using groups
     } catch (error: any) {
       Alert.alert("Authentication Error", error.message);
     } finally {
@@ -42,12 +42,12 @@ const LoginScreen = () => {
     }
   };
   
-  // --- RESTORED: YOUR ORIGINAL handleAnonymousLogin LOGIC ---
+  // --- YOUR ORIGINAL ANONYMOUS LOGIN LOGIC (UNCHANGED) ---
   const handleAnonymousLogin = async () => {
     setIsLoading(true);
     try {
         await loginAnonymously();
-        router.replace('/home'); // Your navigation logic
+        router.replace('/home'); // Or '/(app)/home' if using groups
     } catch (error: any) {
         Alert.alert("Authentication Error", error.message);
     } finally {
@@ -59,7 +59,7 @@ const LoginScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-            <Feather name="sunrise" size={40} color={COLORS.primary} />
+            <Feather name="feather" size={40} color={COLORS.primary} />
         </View>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Log in to continue your journey.</Text>
@@ -96,7 +96,6 @@ const LoginScreen = () => {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
-            {/* --- RESTORED: The "Continue Anonymously" button --- */}
             <TouchableOpacity onPress={handleAnonymousLogin}>
               <Text style={styles.linkText}>Continue Anonymously</Text>
             </TouchableOpacity>
@@ -113,7 +112,7 @@ const LoginScreen = () => {
   );
 };
 
-// --- AESTHETIC STYLES ---
+// STYLES (UNCHANGED)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -124,29 +123,24 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.card,
     borderRadius: 30,
     padding: 30,
     alignItems: 'center',
-    shadowColor: COLORS.shadowDark,
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
     elevation: 10,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: COLORS.shadowDark,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 5,
-    elevation: 8,
   },
   title: {
     fontSize: 28,
@@ -164,12 +158,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: COLORS.subtle,
+    backgroundColor: COLORS.background,
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: COLORS.shadowDark,
+    borderColor: COLORS.shadow,
   },
   inputIcon: {
     marginRight: 10,
@@ -187,11 +181,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 8,
   },
   buttonText: {
     color: COLORS.white,

@@ -1,4 +1,4 @@
-// app/signup.tsx
+// app/(auth)/signup.tsx
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
@@ -6,15 +6,16 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
-// --- USE THE SAME WARM TERRACOTTA & MOSS PALETTE ---
+// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
 const COLORS = {
-  background: '#FBF9F6',
-  primary: '#D97706',
-  subtle: '#FEF3C7',
-  white: '#FFFFFF',
-  shadowDark: '#E7E5E4',
-  textPrimary: '#57534E',
-  textSecondary: '#A8A29E',
+  background: '#F0F2F5',
+  primary: '#34D399',
+  card: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  shadow: '#D1D5DB',
+  accent: '#ECFDF5',
+  white: '#FFFFFF', // ---> THIS IS THE FIX <---
 };
 
 const SignUpScreen = () => {
@@ -26,7 +27,7 @@ const SignUpScreen = () => {
   const { signUp } = useAuth();
   const router = useRouter();
 
-  // Your original sign up logic (unchanged)
+  // --- YOUR ORIGINAL SIGN UP LOGIC (UNCHANGED) ---
   const handleSignUp = async () => {
     if (!username || !email || !password || !confirmPassword) {
       Alert.alert("Input Required", "Please fill in all fields.");
@@ -39,7 +40,7 @@ const SignUpScreen = () => {
     setIsLoading(true);
     try {
       await signUp(email, password, username);
-      router.replace('/home');
+      router.replace('/home'); // Or '/(app)/home' if using groups
     } catch (error: any) {
       Alert.alert("Sign Up Error", error.message);
     } finally {
@@ -60,7 +61,7 @@ const SignUpScreen = () => {
 
         <View style={styles.inputContainer}>
           <Feather name="mail" size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
-          <TextInput style={styles.input} placeholder="Email" placeholderTextColor={COLORS.textSecondary} value={email} onChangeText={setEmail} keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder="Email" placeholderTextColor={COLORS.textSecondary} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
         </View>
         
         <View style={styles.inputContainer}>
@@ -73,7 +74,7 @@ const SignUpScreen = () => {
           <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor={COLORS.textSecondary} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
         </View>
 
-        {isLoading ? <ActivityIndicator size="large" color={COLORS.primary} /> : (
+        {isLoading ? <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} /> : (
           <TouchableOpacity style={styles.button} onPress={handleSignUp}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
@@ -89,7 +90,7 @@ const SignUpScreen = () => {
   );
 };
 
-// --- USE THE SAME STYLES AS THE LOGIN SCREEN ---
+// --- STYLES (MATCHES LOGIN SCREEN) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -100,14 +101,14 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.card,
     borderRadius: 30,
     padding: 30,
     alignItems: 'center',
-    shadowColor: COLORS.shadowDark,
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
     elevation: 10,
   },
   title: {
@@ -126,12 +127,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: COLORS.subtle,
+    backgroundColor: COLORS.background,
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: COLORS.shadowDark,
+    borderColor: COLORS.shadow,
   },
   inputIcon: {
     marginRight: 10,
@@ -149,11 +150,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 8,
   },
   buttonText: {
     color: COLORS.white,

@@ -9,6 +9,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { ActivityName } from '../hooks/useActivityTracker';
 import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate } from 'react-native-reanimated';
+import { useMusic } from './MusicContext'; // Import the music context
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width * 0.75;
@@ -32,7 +33,7 @@ type Activity = {
   screen: Href;
 };
 
-// ---> THIS IS THE FIX: Add the two missing games to the activities array <---
+// Add music control to your activities
 const activities: Activity[] = [
   { id: 'breathing', title: 'Breathing', subtitle: 'Guided Exercise', icon: 'wind', screen: '/breathing' },
   { id: 'journal', title: 'Journaling', subtitle: 'Reflect on your day', icon: 'edit-3', screen: '/journal' },
@@ -40,6 +41,7 @@ const activities: Activity[] = [
   { id: 'zenslide', title: 'Zen Slide', subtitle: 'Mindful Puzzle', icon: 'grid', screen: '/zenslide' },
   { id: 'starlightTap', title: 'Starlight Tap', subtitle: 'Find constellations', icon: 'star', screen: '/starlightTap' },
   { id: 'willowispMaze', title: 'Wisp Maze', subtitle: 'A calming labyrinth', icon: 'git-branch', screen: '/willowispMaze' },
+  { id: 'music', title: 'Sound Settings', subtitle: 'Control background music', icon: 'music', screen: './musicControl' }, // Added music control
 ];
 
 type ProgressRingProps = {
@@ -62,6 +64,7 @@ const HomeScreen = () => {
   const [progress, setProgress] = useState(0);
   const [streak, setStreak] = useState(0);
   const scrollX = useSharedValue(0);
+  const { isPlaying, playMusic, pauseMusic } = useMusic(); // Use the music context
 
   // --- YOUR ORIGINAL DATA FETCHING LOGIC IS PRESERVED ---
   useEffect(() => {
@@ -113,6 +116,15 @@ const HomeScreen = () => {
     }
   };
 
+  // Toggle music play/pause
+  const toggleMusic = () => {
+    if (isPlaying) {
+      pauseMusic();
+    } else {
+      playMusic();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -121,9 +133,14 @@ const HomeScreen = () => {
                 <Text style={styles.headerWelcome}>Welcome back,</Text>
                 <Text style={styles.headerName}>{displayName}</Text>
             </View>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity onPress={toggleMusic} style={styles.musicButton}>
+                <Feather name={isPlaying ? "volume-2" : "volume-x"} size={24} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
                 <Feather name="log-out" size={24} color={COLORS.textSecondary} />
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
         </View>
 
         <View style={styles.card}>
@@ -180,6 +197,12 @@ const HomeScreen = () => {
                 <Text style={styles.listItemText}>Mood Stats</Text>
                 <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
+            {/* Add music stats if you want to track music usage */}
+            <TouchableOpacity style={styles.listItem} onPress={() => router.push('./musicControl')}>
+                <Feather name="music" size={22} color={COLORS.textSecondary} />
+                <Text style={styles.listItemText}>Sound Settings</Text>
+                <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
+            </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -189,7 +212,23 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
     scrollContent: { paddingVertical: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
+    header: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        paddingHorizontal: 20, 
+        marginBottom: 20 
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    musicButton: { 
+        backgroundColor: COLORS.card, 
+        padding: 8, 
+        borderRadius: 20, 
+        marginRight: 10 
+    },
     headerWelcome: { fontSize: 16, color: COLORS.textSecondary },
     headerName: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary, textTransform: 'capitalize' },
     logoutButton: { backgroundColor: COLORS.card, padding: 8, borderRadius: 20 },

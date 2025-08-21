@@ -18,30 +18,31 @@ import { useAuth } from '../context/AuthContext';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
+// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
 const COLORS = {
-  background: '#000000ff',
-  primary: '#68D391',
-  secondary: '#F0FFF4',
+  background: '#F0F2F5',
+  primary: '#34D399',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
 };
 
 const SplashScreen = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  // --- Animation Shared Values ---
+  // --- YOUR ORIGINAL ANIMATION VALUES (UNCHANGED) ---
   const leafTranslateY = useSharedValue(-50);
   const leafOpacity = useSharedValue(0);
   const textTranslateY = [...'Dulce'].map(() => useSharedValue(20));
   const textOpacity = [...'Dulce'].map(() => useSharedValue(0));
   const containerOpacity = useSharedValue(1);
-
-  // ---> ADD: New animated values for the slogan <---
   const sloganOpacity = useSharedValue(0);
-  const sloganTranslateY = useSharedValue(10); // Start slightly below
+  const sloganTranslateY = useSharedValue(10);
 
+  // --- YOUR ORIGINAL LOGIC (UNCHANGED) ---
   useEffect(() => {
     const navigateAfterAnimation = () => {
-      const destination = user ? '/home' : '/login';
+      const destination = user ? '/home' : '/login'; // Or your group routes like '/(app)/home'
       containerOpacity.value = withDelay(
         500,
         withTiming(0, { 
@@ -55,7 +56,6 @@ const SplashScreen = () => {
       );
     };
 
-    // --- PART 1: ANIMATE IN ---
     leafOpacity.value = withTiming(1, { duration: 1000 });
     leafTranslateY.value = withSequence(
       withSpring(0, { damping: 12, stiffness: 90 }),
@@ -70,15 +70,10 @@ const SplashScreen = () => {
       translate.value = withDelay(800 + i * 150, withSpring(0, { damping: 15 }));
     });
 
-    // ---> ADD: Trigger the slogan animation after the main title <---
-    // The main title finishes appearing around 2000ms. We'll start this at 2200ms.
     sloganOpacity.value = withDelay(2200, withTiming(1, { duration: 800 }));
     sloganTranslateY.value = withDelay(2200, withSpring(0, { damping: 15 }));
 
-
-    // --- PART 2: DECIDE WHEN TO NAVIGATE ---
-    const navigationDelay = 3500; // Slightly increased delay to let slogan appear
-
+    const navigationDelay = 3500;
     const timer = setTimeout(() => {
         if (!loading) {
             navigateAfterAnimation();
@@ -94,7 +89,7 @@ const SplashScreen = () => {
 
   }, [loading, user]);
 
-  // --- Animated Styles ---
+  // --- ANIMATED STYLES (UPDATED WITH NEW COLORS) ---
   const animatedContainerStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
   }));
@@ -104,7 +99,6 @@ const SplashScreen = () => {
     transform: [{ translateY: leafTranslateY.value }],
   }));
 
-  // ---> ADD: New animated style for the slogan <---
   const animatedSloganStyle = useAnimatedStyle(() => {
     return {
       opacity: sloganOpacity.value,
@@ -132,7 +126,6 @@ const SplashScreen = () => {
         })}
       </View>
       
-      {/* ---> ADD: The slogan component itself <--- */}
       <AnimatedView style={animatedSloganStyle}>
         <Text style={styles.slogan}>Keeping in perfect peace - Isaiah 26:3</Text>
       </AnimatedView>
@@ -141,6 +134,7 @@ const SplashScreen = () => {
   );
 };
 
+// --- NEW STYLES ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,18 +149,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 52,
     fontWeight: '600',
-    color: COLORS.secondary,
+    color: COLORS.textPrimary,
     letterSpacing: 2,
   },
-  // ---> ADD: New style for the slogan text <---
   slogan: {
     marginTop: 12,
     fontSize: 14,
     fontStyle: 'italic',
-    color: COLORS.secondary,
-    opacity: 0.8, // Slightly more subtle than the main title
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 20, // Add padding in case it wraps on small screens
+    paddingHorizontal: 20,
   }
 });
 

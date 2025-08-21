@@ -1,7 +1,11 @@
 import React from 'react';
-import SplashScreen from './splashScreen'; // Use the component we just created
+import SplashScreen from './splashScreen';
+import { MusicProvider } from './MusicContext';
 
-// This is the true entry point of the app.
 export default function StartPage() {
-  return <SplashScreen />;
+  return (
+    <MusicProvider>
+      <SplashScreen />
+    </MusicProvider>
+  );
 }
