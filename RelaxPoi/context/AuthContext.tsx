@@ -2,11 +2,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../firebaseConfig'; 
 
-// Define the shape of the context data with updated signUp signature
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  // Updated to accept username
+  
   signUp: (email: string, password: string, username: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   loginAnonymously: () => Promise<any>;
@@ -28,19 +28,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  // REWRITTEN SIGNUP FUNCTION
+ 
   const signUp = async (email: string, password: string, username: string) => {
-    // 1. Create the user with email and password
+   
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
-    // 2. Update their Firebase Auth profile to include the displayName
+    
     if (userCredential.user) {
       await updateProfile(userCredential.user, {
         displayName: username,
       });
     }
     
-    // Return the user credential object
+    
     return userCredential;
   };
 
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  // Render children only when not loading
+  
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to easily use the auth context in other components
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

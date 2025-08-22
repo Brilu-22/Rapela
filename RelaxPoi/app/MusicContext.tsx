@@ -1,78 +1,167 @@
-// context/MusicContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Audio } from 'expo-av';
 
+
+export type Track = {
+  id: string;
+  url: any; 
+  title: string;
+  artist: string;
+  artwork: any; 
+};
+
+
+export const TRACKS: Track[] = [
+  {
+    id: '1',
+    url: require('../assets/music/Calm2.mp3'),
+    title: 'Peaceful Mind',
+    artist: 'Dulce',
+    artwork: require('../assets/images/Calm3.png'),
+  },
+  {
+    id: '2',
+    url: require('../assets/music/HipHop.mp3'),
+    title: 'Lofi Focus',
+    artist: 'Dulce',
+    artwork: require('../assets/images/Kanye3.png'),
+  },
+  {
+    id: '3',
+    url: require('../assets/music/Kwest.mp3'),
+    title: 'Forest Creek',
+    artist: 'Nature',
+    artwork: require('../assets/images/Kwesta.png'),
+  },
+  {
+    id: '4',
+    url: require('../assets/music/R&B.mp3'),
+    title: 'Evening Vibe',
+    artist: 'Dulce',
+    artwork: require('../assets/images/R&B.png'), 
+  },
+  {
+    id: '5',
+    url: require('../assets/music/Vibe.mp3'),
+    title: 'Morning Sun',
+    artist: 'Dulce',
+    artwork: require('../assets/images/Vibes.png'), 
+  },
+];
+
+
 interface MusicContextType {
+  isInitialized: boolean;
   isPlaying: boolean;
   volume: number;
-  playMusic: () => void;
-  pauseMusic: () => void;
-  setVolume: (volume: number) => void;
+  currentTrack: Track | null;
+  playTrack: (trackIndex: number) => Promise<void>;
+  togglePlayPause: () => Promise<void>;
+  nextTrack: () => void;
+  prevTrack: () => void;
+  setVolume: (newVolume: number) => Promise<void>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-interface MusicProviderProps {
-  children: ReactNode;
-}
+export const MusicProvider = ({ children }: { children: ReactNode }) => {
 
-export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolumeState] = useState(0.7);
+  const [volume, setVolumeState] = useState(0.5);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState<number | null>(null);
 
+  
   useEffect(() => {
-    loadAndPlayMusic();
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true, 
+      shouldDuckAndroid: true,
+      staysActiveInBackground: true,
+    }).then(() => setIsInitialized(true));
 
+    
     return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
+      soundRef.current?.unloadAsync();
     };
-  }, []);
+  }, []); 
 
-  const loadAndPlayMusic = async () => {
+  const playTrack = async (trackIndex: number) => {
+    
+    if (soundRef.current) {
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+
+    if (trackIndex < 0 || trackIndex >= TRACKS.length) {
+      setIsPlaying(false);
+      setCurrentTrackIndex(null);
+      return;
+    }
+
     try {
-      // Load music from local assets
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        require('../assets/music/Perfect.mp3'), // Update path if needed
-        { shouldPlay: true, isLooping: true, volume }
+      const track = TRACKS[trackIndex];
+      const { sound } = await Audio.Sound.createAsync(
+        track.url,
+        { shouldPlay: true, isLooping: true, volume },
       );
-      
-      setSound(newSound);
+      soundRef.current = sound;
+      setCurrentTrackIndex(trackIndex);
       setIsPlaying(true);
     } catch (error) {
-      console.error('Failed to load music from assets', error);
-      // You could add a fallback to a different local file if needed
+      console.error(`Error loading track ${trackIndex}:`, error);
     }
   };
 
-  const playMusic = async () => {
-    if (sound) {
-      await sound.playAsync();
+  const togglePlayPause = async () => {
+    if (!soundRef.current) {
+        
+        await playTrack(0);
+        return;
+    }
+    if (isPlaying) {
+      await soundRef.current.pauseAsync();
+      setIsPlaying(false);
+    } else {
+      await soundRef.current.playAsync();
       setIsPlaying(true);
     }
   };
 
-  const pauseMusic = async () => {
-    if (sound) {
-      await sound.pauseAsync();
-      setIsPlaying(false);
+  const nextTrack = () => {
+    let nextIndex = (currentTrackIndex ?? -1) + 1;
+    if (nextIndex >= TRACKS.length) {
+      nextIndex = 0; 
     }
+    playTrack(nextIndex);
+  };
+
+  const prevTrack = () => {
+    let prevIndex = (currentTrackIndex ?? 0) - 1;
+    if (prevIndex < 0) {
+      prevIndex = TRACKS.length - 1; 
+    }
+    playTrack(prevIndex);
   };
 
   const setVolume = async (newVolume: number) => {
     setVolumeState(newVolume);
-    if (sound) {
-      await sound.setVolumeAsync(newVolume);
+    if (soundRef.current) {
+      await soundRef.current.setVolumeAsync(newVolume);
     }
   };
 
   const value: MusicContextType = {
+    isInitialized,
     isPlaying,
     volume,
-    playMusic,
-    pauseMusic,
+    currentTrack: currentTrackIndex !== null ? TRACKS[currentTrackIndex] : null,
+    playTrack,
+    togglePlayPause,
+    nextTrack,
+    prevTrack,
     setVolume,
   };
 
@@ -83,10 +172,9 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   );
 };
 
-// Export the hook
 export const useMusic = (): MusicContextType => {
   const context = useContext(MusicContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useMusic must be used within a MusicProvider');
   }
   return context;

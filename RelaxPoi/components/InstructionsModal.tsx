@@ -1,5 +1,3 @@
-// components/InstructionsModal.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -7,7 +5,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#253528',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',

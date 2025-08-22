@@ -1,25 +1,24 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons'; // We'll use this for the leaf icon
+import { Feather } from '@expo/vector-icons'; 
 
 const COLORS = {
   background: 'rgba(16, 24, 40, 0.6)',
   modalBg: '#F0FFF4',
-  primaryText: '#2F855A',
-  secondaryText: '#38A169',
-  leafBase: '#A0AEC0', // Color for unselected leaves
-  leafSelected: '#48BB78', // Bright green for selected leaf
+  primaryText: '#49654E',
+  secondaryText: '#253528',
+  leafBase: '#A0AEC0', 
+  leafSelected: '#49654E', 
 };
 
 interface MoodModalProps {
   visible: boolean;
   onClose: () => void;
-  onSaveMood: (rating: number) => void; // Function to save the rating (1, 2, or 3)
+  onSaveMood: (rating: number) => void; 
 }
 
 const MoodModal: React.FC<MoodModalProps> = ({ visible, onClose, onSaveMood }) => {
-  const ratings = [1, 2, 3, 4, 5]; // Let's do a 5-leaf rating system
-
+  const ratings = [1, 2, 3, 4, 5]; 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <View style={styles.container}>
@@ -75,7 +74,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   leaf: {
-    opacity: 0.8, // Give it a softer look
+    opacity: 0.8, 
   },
   skipText: {
     fontSize: 16,

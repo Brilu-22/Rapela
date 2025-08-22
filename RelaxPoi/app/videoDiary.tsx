@@ -1,8 +1,5 @@
-// app/(app)/videoDiary.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
-// ---> RESTORED: Your original gesture imports are back <---
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
@@ -14,16 +11,16 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useUserData } from '../hooks/useUserData';
 import { Feather } from '@expo/vector-icons';
 
-// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
+
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
   accent: '#ECFDF5',
-  recordActive: '#F87171',
+  recordActive: '#1D6517',
 };
 
 const CLOUDINARY_CLOUD_NAME = 'dvxrzb6ok';
@@ -43,10 +40,10 @@ const VideoDiaryScreen = () => {
   const { updateUserProgress } = useUserData();
   const router = useRouter();
 
-  // ---> RESTORED: Your original swipeX shared value <---
+  
   const swipeX = useSharedValue(0);
 
-  // ---> RESTORED: Your original recording functions (UNCHANGED) <---
+ 
   const startRecording = async () => {
     if (!cameraRef.current || isRecording) return;
     setIsRecording(true);
@@ -68,7 +65,7 @@ const VideoDiaryScreen = () => {
     }
   };
 
-  // --- YOUR ORIGINAL, UNCHANGED UPLOAD LOGIC ---
+  
   const handleSaveVideo = async () => {
     if (!videoUri || !user) return;
     setIsLoading(true);
@@ -108,7 +105,7 @@ const VideoDiaryScreen = () => {
     }
   };
   
-  // ---> RESTORED: Your original gesture handler (UNCHANGED) <---
+  
   const swipeGesture = Gesture.Pan()
     .onUpdate((event) => {
       if (!isRecording && event.translationX > 0 && event.translationX < 120) {
@@ -127,12 +124,12 @@ const VideoDiaryScreen = () => {
       swipeX.value = withSpring(0);
     });
 
-  // ---> RESTORED: Your original animated style (UNCHANGED) <---
+  
   const animatedRecordButtonStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: swipeX.value }],
   }));
 
-  // --- PERMISSION CHECKS (UNCHANGED) ---
+  
   if (!cameraPermission || !micPermission) return <SafeAreaView style={styles.container}><ActivityIndicator color={COLORS.primary} /></SafeAreaView>;
   if (!cameraPermission.granted || !micPermission.granted) {
     return (
@@ -177,7 +174,7 @@ const VideoDiaryScreen = () => {
                     </TouchableOpacity>
                 </View>
             ) : (
-                // ---> THIS IS THE UI FOR YOUR ORIGINAL SWIPE LOGIC <---
+               
                 <View style={styles.gestureContainer}>
                     <Text style={[styles.instructionText, { right: '60%' }]}>Swipe Right to Record</Text>
                     <GestureDetector gesture={swipeGesture}>
@@ -193,7 +190,7 @@ const VideoDiaryScreen = () => {
   );
 };
 
-// --- NEW STYLES MATCHING THE AESTHETIC ---
+
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
@@ -301,7 +298,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    // --- STYLES FOR YOUR ORIGINAL SWIPE UI ---
+    
     gestureContainer: {
         width: '100%',
         height: 100,
@@ -331,7 +328,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.recordActive,
     },
     recordButtonActive: {
-        borderRadius: 15, // The square shape when recording
+        borderRadius: 15, 
         backgroundColor: COLORS.recordActive,
     },
     instructionText: {

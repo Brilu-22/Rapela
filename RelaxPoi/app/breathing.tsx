@@ -1,5 +1,3 @@
-// app/(app)/breathing.tsx
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import Animated, {
@@ -14,21 +12,21 @@ import Animated, {
   runOnJS,
   withSpring,
 } from 'react-native-reanimated';
-// ---> ADD GESTURE IMPORTS <---
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useActivityTracker } from '../hooks/useActivityTracker';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+
 const COLORS = {
-  background: '#F0F2F5',
-  primary: '#34D399',
-  card: '#FFFFFF',
-  textPrimary: '#1F2937',
-  textSecondary: '#6B7280',
-  shadow: '#D1D5DB',
-  accent: '#ECFDF5',
-  white: '#FFFFFF',
+  background: '#FFFFFF',      
+  card: '#8BA889',          
+  textLight: '#FFFFFF',      
+  textDark: '#000000',       
+  iconBorder: '#253528',     
+  textPrimary: '#253528',     
+  textSecondary: '#49654E',   
+  accent: '#E8F5E9',         
 };
 
 const BreathingScreen = () => {
@@ -38,11 +36,9 @@ const BreathingScreen = () => {
   const progress = useSharedValue(0);
   const [breathState, setBreathState] = useState<'idle' | 'inhaling' | 'holding' | 'exhaling'>('idle');
 
-  // --- Functions to control the cycle ---
+  
   const startBreathingCycle = () => {
-    // Only start if it's currently idle
     if (breathState !== 'idle') return;
-
     setBreathState('inhaling');
     progress.value = withRepeat(
       withSequence(
@@ -59,34 +55,28 @@ const BreathingScreen = () => {
     setBreathState('idle');
   };
 
-  // Clean up the animation when the user leaves the screen
   useEffect(() => {
     return () => cancelAnimation(progress);
   }, []);
 
-
-  // ---> NEW: GESTURE HANDLER FOR SWIPES <---
   const panGesture = Gesture.Pan()
     .onEnd((event) => {
-      // Check for a vertical swipe
       if (Math.abs(event.translationY) > Math.abs(event.translationX) && Math.abs(event.translationY) > 50) {
         if (event.translationY < 0) {
-          // A significant swipe UP
           runOnJS(startBreathingCycle)();
         } else {
-          // A significant swipe DOWN
           runOnJS(stopBreathingCycle)();
         }
       }
     });
 
-  // Animated style for the main circle (unchanged)
+  
   const animatedCircleStyle = useAnimatedStyle(() => {
     const scale = 1 + progress.value * 0.5;
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      [COLORS.accent, COLORS.primary]
+      [COLORS.accent, COLORS.card] 
     );
     return {
       transform: [{ scale }],
@@ -94,7 +84,6 @@ const BreathingScreen = () => {
     };
   });
 
-  // Determine the instruction text based on the current state (unchanged)
   const instructionText = {
     idle: 'You Ready?',
     inhaling: 'Breathe In...',
@@ -102,24 +91,32 @@ const BreathingScreen = () => {
     exhaling: 'Breathe Out...',
   }[breathState];
 
+  const instructionTextColor = useAnimatedStyle(() => {
+      // Animate text color for better readability
+      return {
+        color: interpolateColor(
+            progress.value,
+            [0, 0.5],
+            [COLORS.textPrimary, COLORS.textLight]
+        )
+      }
+  });
+
+
   return (
-    // ---> WRAP THE ENTIRE SCREEN IN GestureHandlerRootView and GestureDetector <---
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GestureDetector gesture={panGesture}>
         <SafeAreaView style={styles.container}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="x" size={28} color={COLORS.textSecondary} />
+            <Feather name="x" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Guided Breathing</Text>
-          
           <View style={styles.circleContainer}>
             <Animated.View style={[styles.circle, animatedCircleStyle]}>
-              <Text style={styles.instructionText}>{instructionText}</Text>
+              <Animated.Text style={[styles.instructionText, instructionTextColor]}>{instructionText}</Animated.Text>
             </Animated.View>
           </View>
           
-          {/* We now show a subtle text hint instead of a large button */}
           <View style={styles.hintContainer}>
             <Feather name={breathState === 'idle' ? 'arrow-up' : 'arrow-down'} size={24} color={COLORS.textSecondary} />
             <Text style={styles.hintText}>
@@ -133,6 +130,7 @@ const BreathingScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -144,10 +142,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 60,
     left: 20,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.background,
     padding: 10,
     borderRadius: 20,
-    zIndex: 10, // Ensure it's tappable
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0', 
   },
   title: {
     fontSize: 28,
@@ -161,13 +161,6 @@ const styles = StyleSheet.create({
     height: 300,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 150,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 10,
   },
   circle: {
     width: 250,
@@ -175,16 +168,13 @@ const styles = StyleSheet.create({
     borderRadius: 125,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.iconBorder,
   },
   instructionText: {
     fontSize: 32,
     fontWeight: '600',
-    color: COLORS.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
-  // New styles for the subtle hint text at the bottom
   hintContainer: {
     position: 'absolute',
     bottom: 80,

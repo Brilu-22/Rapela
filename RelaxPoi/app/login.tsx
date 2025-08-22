@@ -1,21 +1,19 @@
-// app/(auth)/login.tsx
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { Link, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
-// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
+
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
   accent: '#ECFDF5',
-  white: '#FFFFFF', // ---> THIS IS THE FIX <---
+  white: '#FFFFFF', 
 };
 
 const LoginScreen = () => {
@@ -25,7 +23,7 @@ const LoginScreen = () => {
   const { login, loginAnonymously } = useAuth();
   const router = useRouter();
 
-  // --- YOUR ORIGINAL LOGIN LOGIC (UNCHANGED) ---
+  
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Input Required", "Please enter both email and password.");
@@ -34,7 +32,7 @@ const LoginScreen = () => {
     setIsLoading(true);
     try {
       await login(email, password);
-      router.replace('/home'); // Or '/(app)/home' if using groups
+      router.replace('/home'); 
     } catch (error: any) {
       Alert.alert("Authentication Error", error.message);
     } finally {
@@ -42,12 +40,12 @@ const LoginScreen = () => {
     }
   };
   
-  // --- YOUR ORIGINAL ANONYMOUS LOGIN LOGIC (UNCHANGED) ---
+  
   const handleAnonymousLogin = async () => {
     setIsLoading(true);
     try {
         await loginAnonymously();
-        router.replace('/home'); // Or '/(app)/home' if using groups
+        router.replace('/home'); 
     } catch (error: any) {
         Alert.alert("Authentication Error", error.message);
     } finally {
@@ -112,7 +110,7 @@ const LoginScreen = () => {
   );
 };
 
-// STYLES (UNCHANGED)
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

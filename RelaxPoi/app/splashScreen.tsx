@@ -1,5 +1,3 @@
-// app/SplashScreen.tsx
-
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -18,10 +16,10 @@ import { useAuth } from '../context/AuthContext';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-// --- "APPLE AESTHETIC / SOFT UI" PALETTE ---
+
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
 };
@@ -30,7 +28,7 @@ const SplashScreen = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  // --- YOUR ORIGINAL ANIMATION VALUES (UNCHANGED) ---
+
   const leafTranslateY = useSharedValue(-50);
   const leafOpacity = useSharedValue(0);
   const textTranslateY = [...'Dulce'].map(() => useSharedValue(20));
@@ -39,10 +37,10 @@ const SplashScreen = () => {
   const sloganOpacity = useSharedValue(0);
   const sloganTranslateY = useSharedValue(10);
 
-  // --- YOUR ORIGINAL LOGIC (UNCHANGED) ---
+ 
   useEffect(() => {
     const navigateAfterAnimation = () => {
-      const destination = user ? '/home' : '/login'; // Or your group routes like '/(app)/home'
+      const destination = user ? '/home' : '/login';
       containerOpacity.value = withDelay(
         500,
         withTiming(0, { 
@@ -89,7 +87,7 @@ const SplashScreen = () => {
 
   }, [loading, user]);
 
-  // --- ANIMATED STYLES (UPDATED WITH NEW COLORS) ---
+  
   const animatedContainerStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
   }));
@@ -134,7 +132,7 @@ const SplashScreen = () => {
   );
 };
 
-// --- NEW STYLES ---
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

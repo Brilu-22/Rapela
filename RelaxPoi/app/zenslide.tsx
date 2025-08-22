@@ -1,5 +1,3 @@
-// app/(app)/zenslide.tsx
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Dimensions, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
@@ -13,21 +11,21 @@ import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-// --- NEW "APPLE AESTHETIC / SOFT UI" PALETTE ---
+
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
-  accent: '#ECFDF5',
+  accent: '#f9f9f9ff',
   disabled: '#9CA3AF',
 };
 
 const GRID_SIZE = 3;
 const TILE_CONTAINER_WIDTH = width * 0.9;
-const TILE_MARGIN = 5; // Updated for new design
+const TILE_MARGIN = 5; 
 const TILE_SIZE = (TILE_CONTAINER_WIDTH - TILE_MARGIN * (GRID_SIZE + 1)) / GRID_SIZE;
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
@@ -41,7 +39,7 @@ interface TileProps {
   isSwapMode: boolean;
 }
 
-// THIS COMPONENT'S LOGIC IS UNCHANGED
+
 const Tile = React.memo(({ value, index, onPress, onSwipe, isSwapSelected, isSwapMode }: TileProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     const targetX = (index % GRID_SIZE) * (TILE_SIZE + TILE_MARGIN);
@@ -91,7 +89,7 @@ export default function ZenSlideGame() {
     useActivityTracker('zenslide'); 
 
     const { user } = useAuth();
-    const router = useRouter(); // Added router for back button
+    const router = useRouter(); 
     const [grid, setGrid] = useState<(number | null)[]>([]);
     const [moves, setMoves] = useState(0);
     const [boosters, setBoosters] = useState(3);
@@ -99,7 +97,7 @@ export default function ZenSlideGame() {
     const [firstSwapIndex, setFirstSwapIndex] = useState<number | null>(null);
     const [leaderboard, setLeaderboard] = useState<{ moves: number; name: string }[]>([]);
 
-    // --- ALL OF YOUR ORIGINAL GAME LOGIC IS PRESERVED BELOW ---
+    
     const emptyIndex = useMemo(() => grid.indexOf(null), [grid]);
 
     const createSolvableGrid = useCallback(() => {
@@ -210,7 +208,7 @@ export default function ZenSlideGame() {
                     <Feather name="chevron-left" size={28} color={COLORS.textSecondary} />
                 </TouchableOpacity>
                 <Text style={styles.title}>Zen Slide</Text>
-                <View style={{width: 48}} />{/* Spacer */}
+                <View style={{width: 48}} />
             </View>
             
             <View style={styles.statsContainer}>
@@ -251,7 +249,7 @@ export default function ZenSlideGame() {
     );
 };
 
-// --- NEW STYLES MATCHING THE "APPLE AESTHETIC" ---
+
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 

@@ -1,24 +1,33 @@
-// app/musicControl.tsx
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, ScrollView, ActivityIndicator, Image, Dimensions } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Feather } from '@expo/vector-icons';
-import { useMusic } from './MusicContext';
+import { useMusic, TRACKS, Track } from './MusicContext';
 import { useRouter } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
-  accent: '#ECFDF5',
 };
 
 const MusicControlScreen = () => {
-  const { isPlaying, volume, playMusic, pauseMusic, setVolume } = useMusic();
+  const { isInitialized, isPlaying, volume, currentTrack, togglePlayPause, nextTrack, prevTrack, setVolume, playTrack } = useMusic();
   const router = useRouter();
+
+  if (!isInitialized) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={{ marginTop: 15, color: COLORS.textSecondary, fontSize: 16 }}>Initializing Player...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,87 +36,59 @@ const MusicControlScreen = () => {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Feather name="chevron-left" size={28} color={COLORS.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerName}>Sound Settings</Text>
-          <View style={{ width: 28 }} /> {/* Spacer for balance */}
+          <Text style={styles.headerName}>Sound Player</Text>
+          <View style={{ width: 48 }} />
         </View>
 
-        {/* Music Recorder-like Interface */}
-        <View style={styles.card}>
-          <View style={styles.recorderBody}>
-            {/* Circular buttons resembling a recorder */}
-            <View style={styles.recorderControls}>
-              <TouchableOpacity 
-                style={styles.playPauseButton}
-                onPress={isPlaying ? pauseMusic : playMusic}
-              >
-                <Feather 
-                  name={isPlaying ? "pause" : "play"} 
-                  size={32} 
-                  color="#fff" 
+        <View style={styles.playerCard}>
+            <View style={styles.artworkContainer}>
+                <Image 
+                    
+                    source={currentTrack ? currentTrack.artwork : require('../assets/images/Vibes.png')} 
+                    style={styles.artwork}
                 />
-              </TouchableOpacity>
-              
-              <View style={styles.volumeControl}>
+            </View>
+            <View style={styles.trackInfo}>
+                <Text style={styles.trackTitle}>{currentTrack?.title || 'No Track Playing'}</Text>
+                <Text style={styles.trackArtist}>{currentTrack?.artist || 'Select a track to begin'}</Text>
+            </View>
+            <View style={styles.controlsContainer}>
+                <TouchableOpacity onPress={prevTrack} style={styles.controlButton}>
+                    <Feather name="skip-back" size={32} color={COLORS.textPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayPause}>
+                    <Feather name={isPlaying ? "pause" : "play"} size={32} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={nextTrack} style={styles.controlButton}>
+                    <Feather name="skip-forward" size={32} color={COLORS.textPrimary} />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.volumeControl}>
                 <Feather name="volume-1" size={24} color={COLORS.textSecondary} />
                 <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={1}
-                  value={volume}
-                  onValueChange={setVolume}
-                  minimumTrackTintColor={COLORS.primary}
-                  maximumTrackTintColor={COLORS.shadow}
-                  thumbTintColor={COLORS.primary}
+                    style={styles.slider}
+                    minimumValue={0} maximumValue={1} value={volume} onValueChange={setVolume}
+                    minimumTrackTintColor={COLORS.primary} maximumTrackTintColor={COLORS.shadow} thumbTintColor={COLORS.primary}
                 />
                 <Feather name="volume-2" size={24} color={COLORS.textSecondary} />
-              </View>
             </View>
-            
-            {/* Fake recording indicators */}
-            <View style={styles.indicators}>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <View 
-                  key={i} 
-                  style={[
-                    styles.indicator, 
-                    { height: Math.random() * 30 + 10 } // Random heights for visual effect
-                  ]} 
-                />
-              ))}
-            </View>
-            
-            {/* Additional recorder-style buttons */}
-            <View style={styles.additionalButtons}>
-              <TouchableOpacity style={styles.recButton}>
-                <View style={styles.recInnerCircle} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.stopButton} />
-            </View>
-          </View>
         </View>
-
-        <Text style={styles.status}>
-          {isPlaying ? 'Music is playing' : 'Music is paused'}
-        </Text>
-
-        {/* Additional sound options */}
+        
         <View style={styles.listContainer}>
-          <Text style={styles.sectionTitle}>Sound Options</Text>
-          <TouchableOpacity style={styles.listItem}>
-            <Feather name="music" size={22} color={COLORS.textSecondary} />
-            <Text style={styles.listItemText}>Change Soundtrack</Text>
-            <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.listItem}>
-            <Feather name="clock" size={22} color={COLORS.textSecondary} />
-            <Text style={styles.listItemText}>Sleep Timer</Text>
-            <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.listItem}>
-            <Feather name="settings" size={22} color={COLORS.textSecondary} />
-            <Text style={styles.listItemText}>Sound Quality</Text>
-            <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Sound Library</Text>
+         
+          {TRACKS.map((track: Track, index: number) => (
+            <TouchableOpacity key={track.id} style={styles.listItem} onPress={() => playTrack(index)}>
+                <Image source={track.artwork} style={styles.listItemArtwork} />
+                <View style={styles.listItemTextContainer}>
+                    <Text style={[styles.listItemTitle, currentTrack?.id === track.id && { color: COLORS.primary }]}>
+                        {track.title}
+                    </Text>
+                    <Text style={styles.listItemArtist}>{track.artist}</Text>
+                </View>
+                {currentTrack?.id === track.id && isPlaying && <Feather name="bar-chart-2" size={22} color={COLORS.primary} />}
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -115,144 +96,29 @@ const MusicControlScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.background 
-  },
-  scrollContent: { 
-    paddingVertical: 20 
-  },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    marginBottom: 20 
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerName: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    color: COLORS.textPrimary, 
-  },
-  card: { 
-    backgroundColor: COLORS.card, 
-    borderRadius: 20, 
-    marginHorizontal: 20, 
-    padding: 20, 
-    shadowColor: COLORS.shadow, 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 10, 
-    elevation: 5 
-  },
-  recorderBody: {
-    alignItems: 'center',
-  },
-  recorderControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 30,
-  },
-  playPauseButton: {
-    backgroundColor: COLORS.primary,
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  volumeControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '60%',
-  },
-  slider: {
-    width: '70%',
-    height: 40,
-    marginHorizontal: 10,
-  },
-  indicators: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 50,
-    width: '100%',
-    backgroundColor: COLORS.background,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  indicator: {
-    width: 6,
-    backgroundColor: COLORS.primary,
-    borderRadius: 3,
-  },
-  additionalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '60%',
-  },
-  recButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#ff3b30',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recInnerCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-  },
-  stopButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
-  },
-  status: {
-    marginTop: 20,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
-  listContainer: { 
-    marginHorizontal: 20, 
-    marginTop: 40 
-  },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    color: COLORS.textPrimary, 
-    marginBottom: 15 
-  },
-  listItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.card, 
-    padding: 20, 
-    borderRadius: 15, 
-    marginBottom: 10,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  listItemText: { 
-    flex: 1, 
-    marginLeft: 15, 
-    fontSize: 16, 
-    fontWeight: '600', 
-    color: COLORS.textPrimary 
-  },
+    container: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center' },
+    scrollContent: { paddingVertical: 20 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
+    backButton: { backgroundColor: COLORS.card, padding: 10, borderRadius: 20 },
+    headerName: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary },
+    playerCard: { backgroundColor: COLORS.card, borderRadius: 20, marginHorizontal: 20, padding: 25, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5, alignItems: 'center' },
+    artworkContainer: { width: width * 0.6, height: width * 0.6, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 10, marginBottom: 25 },
+    artwork: { width: '100%', height: '100%', borderRadius: 20 },
+    trackInfo: { alignItems: 'center', marginBottom: 20 },
+    trackTitle: { fontSize: 22, fontWeight: 'bold', color: COLORS.textPrimary, textAlign: 'center' },
+    trackArtist: { fontSize: 16, color: COLORS.textSecondary, marginTop: 5 },
+    controlsContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '80%', marginBottom: 20 },
+    controlButton: { padding: 10 },
+    playPauseButton: { backgroundColor: COLORS.primary, width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center' },
+    volumeControl: { flexDirection: 'row', alignItems: 'center', width: '100%', marginTop: 10 },
+    slider: { flex: 1, height: 40, marginHorizontal: 10 },
+    listContainer: { marginHorizontal: 20, marginTop: 40 },
+    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 15 },
+    listItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, padding: 15, borderRadius: 15, marginBottom: 10 },
+    listItemArtwork: { width: 50, height: 50, borderRadius: 10 },
+    listItemTextContainer: { flex: 1, marginLeft: 15 },
+    listItemTitle: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
+    listItemArtist: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
 });
 
 export default MusicControlScreen;

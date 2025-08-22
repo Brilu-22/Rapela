@@ -1,5 +1,3 @@
-// app/(app)/home.tsx
-
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -9,20 +7,21 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { ActivityName } from '../hooks/useActivityTracker';
 import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate } from 'react-native-reanimated';
-import { useMusic } from './MusicContext'; // Import the music context
+import { useMusic } from './MusicContext'; 
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.75;
+const ITEM_WIDTH = width * 0.6;
 const ITEM_SPACING = (width - ITEM_WIDTH) / 2;
 
+
 const COLORS = {
-  background: '#F0F2F5',
-  primary: '#34D399',
-  card: '#FFFFFF',
-  textPrimary: '#1F2937',
-  textSecondary: '#6B7280',
-  shadow: '#D1D5DB',
-  accent: '#ECFDF5',
+  background: '#FFFFFF',
+  card: '#8BA889',
+  textLight: '#FFFFFF',
+  textDark: '#000000', 
+  iconBorder: '#253528',
+  textPrimary: '#253528',
+  textSecondary: '#49654E',
 };
 
 type Activity = {
@@ -33,7 +32,6 @@ type Activity = {
   screen: Href;
 };
 
-// Add music control to your activities
 const activities: Activity[] = [
   { id: 'breathing', title: 'Breathing', subtitle: 'Guided Exercise', icon: 'wind', screen: '/breathing' },
   { id: 'journal', title: 'Journaling', subtitle: 'Reflect on your day', icon: 'edit-3', screen: '/journal' },
@@ -41,22 +39,9 @@ const activities: Activity[] = [
   { id: 'zenslide', title: 'Zen Slide', subtitle: 'Mindful Puzzle', icon: 'grid', screen: '/zenslide' },
   { id: 'starlightTap', title: 'Starlight Tap', subtitle: 'Find constellations', icon: 'star', screen: '/starlightTap' },
   { id: 'willowispMaze', title: 'Wisp Maze', subtitle: 'A calming labyrinth', icon: 'git-branch', screen: '/willowispMaze' },
-  { id: 'music', title: 'Sound Settings', subtitle: 'Control background music', icon: 'music', screen: './musicControl' }, // Added music control
+  { id: 'music', title: 'Sound Settings', subtitle: 'Control background music', icon: 'music', screen: '/musicControl' },
 ];
 
-type ProgressRingProps = {
-  value: number;
-  label: string;
-};
-
-const ProgressRing = ({ value, label }: ProgressRingProps) => (
-    <View style={styles.ringContainer}>
-        <View style={styles.progressRing}>
-            <Text style={styles.progressRingValue}>{value}{label.includes('%') ? '%' : ''}</Text>
-        </View>
-        <Text style={styles.progressRingLabel}>{label.replace('%', '').trim()}</Text>
-    </View>
-);
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -64,9 +49,8 @@ const HomeScreen = () => {
   const [progress, setProgress] = useState(0);
   const [streak, setStreak] = useState(0);
   const scrollX = useSharedValue(0);
-  const { isPlaying, playMusic, pauseMusic } = useMusic(); // Use the music context
+  const { isPlaying, togglePlayPause } = useMusic();
 
-  // --- YOUR ORIGINAL DATA FETCHING LOGIC IS PRESERVED ---
   useEffect(() => {
     if (!user) return;
     const todayString = new Date().toISOString().split('T')[0];
@@ -78,7 +62,6 @@ const HomeScreen = () => {
       let totalSecondsToday = 0;
       if (doc.exists()) {
         const data = doc.data();
-        // Make sure to include your new games here if you track their time
         const activities: ActivityName[] = ['journal', 'breathing', 'zenslide', 'videoDiary', 'starlightTap', 'willowispMaze'];
         activities.forEach(activity => {
             if (data[activity]) totalSecondsToday += data[activity];
@@ -103,9 +86,9 @@ const HomeScreen = () => {
     },
   });
 
+  
   const displayName = user?.displayName || 'there';
 
-  // --- YOUR ORIGINAL LOGOUT LOGIC IS PRESERVED ---
   const handleLogout = async () => {
     try {
       await logout();
@@ -116,43 +99,43 @@ const HomeScreen = () => {
     }
   };
 
-  // Toggle music play/pause
-  const toggleMusic = () => {
-    if (isPlaying) {
-      pauseMusic();
-    } else {
-      playMusic();
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        
+        
         <View style={styles.header}>
             <View>
                 <Text style={styles.headerWelcome}>Welcome back,</Text>
                 <Text style={styles.headerName}>{displayName}</Text>
             </View>
             <View style={styles.headerButtons}>
-              <TouchableOpacity onPress={toggleMusic} style={styles.musicButton}>
-                <Feather name={isPlaying ? "volume-2" : "volume-x"} size={24} color={COLORS.textSecondary} />
+              <TouchableOpacity onPress={togglePlayPause} style={styles.headerIcon}>
+                <Feather name={isPlaying ? "volume-2" : "volume-x"} size={24} color={COLORS.textPrimary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                <Feather name="log-out" size={24} color={COLORS.textSecondary} />
+              <TouchableOpacity onPress={handleLogout} style={styles.headerIcon}>
+                <Feather name="log-out" size={24} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
         </View>
 
-        <View style={styles.card}>
-            <View style={styles.progressContainer}>
-                <ProgressRing value={progress} label="Daily Goal %" />
-                <View style={styles.divider} />
-                <ProgressRing value={streak} label="Day Streak" />
+        <View style={styles.statsCard}>
+            <View style={styles.statItem}>
+                <Text style={styles.statValue}>{progress}%</Text>
+                <Text style={styles.statLabel}>Daily Goal</Text>
             </View>
+            <View style={styles.statItem}>
+                <Text style={styles.statValue}>{streak}</Text>
+                <Text style={styles.statLabel}>Day Streak</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.push('/musicControl')} style={styles.statItem}>
+                <Feather name="music" size={28} color={COLORS.textLight} />
+                <Text style={styles.statLabel}>Sound</Text>
+            </TouchableOpacity>
         </View>
 
-        <View style={styles.calendarContainer}>
-            <Text style={styles.sectionTitle}>Today's Focus</Text>
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Mindful Activities</Text>
         </View>
         
         <Animated.ScrollView
@@ -175,7 +158,7 @@ const HomeScreen = () => {
                     <Animated.View key={item.id} style={[styles.cardContainer, animatedStyle]}>
                         <TouchableOpacity style={styles.activityCard} onPress={() => router.push(item.screen)}>
                             <View style={styles.iconCircle}>
-                                <Feather name={item.icon} size={30} color={COLORS.primary} />
+                                <Feather name={item.icon} size={30} color={COLORS.iconBorder} />
                             </View>
                             <Text style={styles.activityTitle}>{item.title}</Text>
                             <Text style={styles.activitySubtitle}>{item.subtitle}</Text>
@@ -186,20 +169,15 @@ const HomeScreen = () => {
         </Animated.ScrollView>
 
         <View style={styles.listContainer}>
-            <Text style={styles.sectionTitle}>Your Journey</Text>
             <TouchableOpacity style={styles.listItem} onPress={() => router.push('/diaryLog')}>
-                <Feather name="archive" size={22} color={COLORS.textSecondary} />
                 <Text style={styles.listItemText}>My Memories</Text>
                 <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.listItem} onPress={() => router.push('/stats')}>
-                <Feather name="bar-chart-2" size={22} color={COLORS.textSecondary} />
                 <Text style={styles.listItemText}>Mood Stats</Text>
                 <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
-            {/* Add music stats if you want to track music usage */}
-            <TouchableOpacity style={styles.listItem} onPress={() => router.push('./musicControl')}>
-                <Feather name="music" size={22} color={COLORS.textSecondary} />
+            <TouchableOpacity style={styles.listItem} onPress={() => router.push('/MusicControlScreen')}>
                 <Text style={styles.listItemText}>Sound Settings</Text>
                 <Feather name="chevron-right" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
@@ -211,45 +189,124 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
-    scrollContent: { paddingVertical: 20 },
+    scrollContent: { paddingVertical: 10 },
     header: { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         paddingHorizontal: 20, 
-        marginBottom: 20 
+        paddingVertical: 10,
+        marginBottom: 20,
     },
     headerButtons: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    musicButton: { 
-        backgroundColor: COLORS.card, 
-        padding: 8, 
-        borderRadius: 20, 
-        marginRight: 10 
+    headerIcon: {
+        backgroundColor: '#E8F5E9', 
+        padding: 10,
+        borderRadius: 20,
+        marginLeft: 10,
     },
-    headerWelcome: { fontSize: 16, color: COLORS.textSecondary },
-    headerName: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary, textTransform: 'capitalize' },
-    logoutButton: { backgroundColor: COLORS.card, padding: 8, borderRadius: 20 },
-    card: { backgroundColor: COLORS.card, borderRadius: 20, marginHorizontal: 20, padding: 20, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-    progressContainer: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-    ringContainer: { alignItems: 'center', flex: 1 },
-    progressRing: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center', borderWidth: 6, borderColor: COLORS.primary },
-    progressRingValue: { fontSize: 20, fontWeight: 'bold', color: COLORS.textPrimary },
-    progressRingLabel: { marginTop: 10, fontSize: 14, color: COLORS.textSecondary, fontWeight: '500' },
-    divider: { width: 1, height: '60%', backgroundColor: COLORS.background },
-    calendarContainer: { paddingHorizontal: 20, marginVertical: 30 },
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 15 },
-    carouselContainer: { paddingHorizontal: ITEM_SPACING },
-    cardContainer: { width: ITEM_WIDTH, paddingHorizontal: 10 },
-    activityCard: { backgroundColor: COLORS.card, height: 280, borderRadius: 20, padding: 25, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-    iconCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
-    activityTitle: { fontSize: 22, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 5 },
-    activitySubtitle: { fontSize: 14, color: COLORS.textSecondary },
-    listContainer: { marginHorizontal: 20, marginTop: 40 },
-    listItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, padding: 20, borderRadius: 15, marginBottom: 10 },
-    listItemText: { flex: 1, marginLeft: 15, fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
+    headerWelcome: { 
+        fontSize: 16, 
+        color: COLORS.textSecondary 
+    },
+    headerName: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        color: COLORS.textPrimary, 
+        textTransform: 'capitalize' 
+    },
+    statsCard: {
+        backgroundColor: COLORS.card,
+        borderRadius: 20,
+        marginHorizontal: 20,
+        padding: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+    },
+    statItem: {
+        alignItems: 'center',
+    },
+    statValue: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+    },
+    statLabel: {
+        marginTop: 4,
+        fontSize: 14,
+        color: COLORS.textLight,
+        opacity: 0.8,
+    },
+    sectionHeader: { 
+        paddingHorizontal: 20, 
+        marginTop: 40,
+        marginBottom: 10,
+    },
+    sectionTitle: { 
+        fontSize: 20, 
+        fontWeight: 'bold', 
+        color: COLORS.textPrimary, 
+    },
+    carouselContainer: { 
+        paddingHorizontal: ITEM_SPACING,
+        paddingVertical: 20,
+    },
+    cardContainer: { 
+        width: ITEM_WIDTH, 
+        paddingHorizontal: 10 
+    },
+    activityCard: { 
+        backgroundColor: COLORS.card, 
+        height: 220, 
+        borderRadius: 20, 
+        padding: 20, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+    },
+    iconCircle: { 
+        width: 70, 
+        height: 70, 
+        borderRadius: 35, 
+        backgroundColor: COLORS.background, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        marginBottom: 20,
+        borderWidth: 2,
+        borderColor: COLORS.iconBorder,
+    },
+    activityTitle: { 
+        fontSize: 18, 
+        fontWeight: '600', 
+        color: COLORS.textDark,
+        marginBottom: 5 
+    },
+    activitySubtitle: { 
+        fontSize: 14, 
+        color: COLORS.textSecondary 
+    },
+    listContainer: { 
+        marginHorizontal: 20, 
+        marginTop: 20 
+    },
+    listItem: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#F3F4F6',
+        paddingVertical: 18,
+        paddingHorizontal: 20, 
+        borderRadius: 15, 
+        marginBottom: 10 
+    },
+    listItemText: { 
+        flex: 1, 
+        fontSize: 16, 
+        fontWeight: '600', 
+        color: COLORS.textPrimary,
+    },
 });
 
 export default HomeScreen;

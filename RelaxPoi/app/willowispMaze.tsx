@@ -16,17 +16,17 @@ const { width } = Dimensions.get('window');
 
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
   accent: '#ECFDF5',
-  player: '#FBBF24',
+  player: '#1D6517',
   wall: '#E5E7EB',
   hazard: '#FEE2E2',
-  hazardIcon: '#EF4444',
-  shield: '#60A5FA',
+  hazardIcon: '#2b3b1bff',
+  shield: '#C0DE7B',
 };
 
 const LEVELS = [
@@ -46,14 +46,13 @@ const CONTAINER_PADDING = 20;
 const TILE_CONTAINER_WIDTH = width * 0.9;
 const TILE_MARGIN = 5;
 
-// ---> THIS IS THE FIX <---
-// 1. Define a type that matches the 'Rule' type in your InstructionsModal.
+
 type GameRule = {
-  icon: React.ComponentProps<typeof Feather>['name']; // This is the specific type for Feather icon names
+  icon: React.ComponentProps<typeof Feather>['name']; 
   text: string;
 };
 
-// 2. Apply this type to your gameRules array.
+
 const gameRules: GameRule[] = [
     { icon: 'move', text: 'Swipe anywhere to move the wisp one square at a time.' },
     { icon: 'feather', text: 'Reach the green leaf to complete the level before time runs out.' },

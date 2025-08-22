@@ -1,11 +1,11 @@
-// components/CompletionModal.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
-// Use the same consistent color palette
+
+const { width } = Dimensions.get('window');
+
 const COLORS = {
   background: '#F0F2F5',
   primary: '#34D399',
@@ -13,7 +13,7 @@ const COLORS = {
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
-  accent: '#ECFDF5',
+  accent: '#ECFDF5', 
 };
 
 type CompletionModalProps = {
@@ -56,10 +56,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)', // Semi-transparent backdrop
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalView: {
-    width: '85%',
+    width: width * 0.85, 
     backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 30,

@@ -1,5 +1,3 @@
-// app/(app)/starlightTap.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Dimensions, TouchableOpacity, Alert, Platform } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
@@ -7,7 +5,6 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useActivityTracker } from '../hooks/useActivityTracker';
 import * as Haptics from 'expo-haptics';
-// ---> FIX: Corrected import path assuming components folder is at the root <---
 import { CompletionModal } from '../components/completitionModal';
 
 const { width } = Dimensions.get('window');
@@ -17,27 +14,27 @@ const STAR_RADIUS = 15;
 
 const COLORS = {
   background: '#F0F2F5',
-  primary: '#34D399',
+  primary: '#4E6813',
   card: '#FFFFFF',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
   shadow: '#D1D5DB',
   accent: '#ECFDF5',
   starInactive: '#D1D5DB',
-  starActive: '#FBBF24',
-  constellationLine: '#6EE7B7',
-  error: '#F87171',
+  starActive: '#79B425',
+  constellationLine: '#C0DE7B',
+  error: '#054204',
 };
 
 const CONSTELLATIONS = [
-  // ... your 10 constellations ...
+  // 10 constellations ...
   { name: 'The Arrow', stars: [ { x: 0.5, y: 0.2 }, { x: 0.5, y: 0.5 }, { x: 0.5, y: 0.8 } ] },
   { name: 'The Triangle', stars: [ { x: 0.5, y: 0.25 }, { x: 0.3, y: 0.6 }, { x: 0.7, y: 0.6 } ] },
   { name: 'The Hook', stars: [ { x: 0.2, y: 0.3 }, { x: 0.5, y: 0.3 }, { x: 0.5, y: 0.6 }, { x: 0.8, y: 0.6 } ] },
   { name: 'The Kite', stars: [ { x: 0.5, y: 0.15 }, { x: 0.3, y: 0.4 }, { x: 0.7, y: 0.4 }, { x: 0.5, y: 0.8 } ] },
   { name: 'The Crown', stars: [ { x: 0.2, y: 0.4 }, { x: 0.35, y: 0.2 }, { x: 0.5, y: 0.3 }, { x: 0.65, y: 0.2 }, { x: 0.8, y: 0.4 } ] },
   { name: 'The Goblet', stars: [ { x: 0.3, y: 0.2 }, { x: 0.7, y: 0.2 }, { x: 0.3, y: 0.4 }, { x: 0.7, y: 0.4 }, { x: 0.5, y: 0.7 } ] },
-  { name: 'The Serpent', stars: [ { x: 0.2, y: 0.2 }, { x: 0.4, y: 0.4 }, { x: 0.3, y: 0.6 }, { x: 0.5, y: 0.8 }, { x: 0.7, y: 0.7 }, { x: 0.8, y: 0.5 } ] },
+  { name: 'The Yapper', stars: [ { x: 0.2, y: 0.2 }, { x: 0.4, y: 0.4 }, { x: 0.3, y: 0.6 }, { x: 0.5, y: 0.8 }, { x: 0.7, y: 0.7 }, { x: 0.8, y: 0.5 } ] },
   { name: 'The Big Dipper', stars: [ { x: 0.8, y: 0.2 }, { x: 0.65, y: 0.35 }, { x: 0.5, y: 0.3 }, { x: 0.35, y: 0.4 }, { x: 0.2, y: 0.6 }, { x: 0.4, y: 0.65 }, { x: 0.55, y: 0.5 } ] },
   { name: 'The Swan', stars: [ { x: 0.5, y: 0.1 }, { x: 0.5, y: 0.4 }, { x: 0.2, y: 0.3 }, { x: 0.8, y: 0.3 }, { x: 0.5, y: 0.7 }, { x: 0.4, y: 0.9 }, { x: 0.6, y: 0.9 } ] },
   { name: 'The Phoenix', stars: [ { x: 0.5, y: 0.1 }, { x: 0.4, y: 0.3 }, { x: 0.6, y: 0.3 }, { x: 0.5, y: 0.5 }, { x: 0.3, y: 0.7 }, { x: 0.7, y: 0.7 }, { x: 0.4, y: 0.9 }, { x: 0.6, y: 0.9 } ] },
@@ -50,14 +47,14 @@ const StarlightTapGame = () => {
   const [tappedPath, setTappedPath] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   
-  // ---> FIX 1: Define the state and handler function here, at the top level <---
+  
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleResetGame = () => {
     setIsModalVisible(false);
     setTimeout(() => {
       setLevel(0);
-    }, 300); // Delay allows modal to animate out
+    }, 300); // Delay for the modal to animate out
   };
 
   const currentConstellation = CONSTELLATIONS[level];
@@ -85,7 +82,7 @@ const StarlightTapGame = () => {
           if (level < CONSTELLATIONS.length - 1) {
             setLevel(prev => prev + 1);
           } else {
-            // ---> FIX 2: Call the state setter function to show the modal <---
+            
             setIsModalVisible(true);
           }
         }, 1500);
@@ -99,9 +96,9 @@ const StarlightTapGame = () => {
   };
 
   return (
-    // Use a React Fragment <> to return multiple components at the same level
+    
     <>
-      {/* ---> FIX 3: Render the modal here, in the main return statement <--- */}
+     
       <CompletionModal
         visible={isModalVisible}
         title="Journey's End"
