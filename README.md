@@ -2,6 +2,9 @@
   <img src="./assets/images/DulM.png" alt="Dulce App Banner" width="800"/>
 </p>
 
+<h1 align="center">
+  Dulce DulceHome 🌿
+</h1>
 <p align="center">
   <strong>A Mindful Wellness Companion for Calm and Focus</strong>
 </p>
@@ -11,138 +14,101 @@
   <img alt="Expo" src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white">
   <img alt="Firebase" src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge">
+</p>
+
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-demo">Demo</a> •
+  <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-installation">Installation</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-deployment">Deployment</a> •
+  <a href="#-contributing">Contributing</a>
 </p>
 
 ---
 
-## 🌿 Core Philosophy
+## 🌟 Overview
 
-**Dulce** (pronounced _Dool-say_) is more than just an app; it's a digital sanctuary designed from the ground up to reduce stress through serene, gesture-based interactions. The core design principle is to replace complex UI with fluid, rhythmic gestures, creating a predictable and calming environment.
+**Dulce** (pronounced *Dool-say*) is a thoughtfully designed mental wellness application that serves as a digital sanctuary. Built with accessibility and sensory sensitivity in mind, it replaces complex UI with fluid, gesture-based interactions to create a predictable and calming environment perfect for users on the autism spectrum or anyone seeking mindful digital experiences.
 
-The application adheres to a strict "one-color" aesthetic, utilizing a deep **Olive Green (`#4E6813`)** and its tints to create a visually cohesive and low-sensory experience that is especially mindful of users on the autism spectrum.
+### 🎯 Core Design Philosophy
 
-## ✨ Key Features
+- **One-Color Aesthetic**: Exclusive use of deep **Olive Green (`#4E6813`)** and its tints for visual cohesion
+- **Gesture-First Interface**: Intuitive swipe and tap interactions reduce cognitive load
+- **Predictable Environment**: Consistent patterns and animations create a safe digital space
+- **Non-Verbal Alternatives**: Multiple ways to engage without requiring verbal expression
 
-<details>
-  <summary><strong>🧠 Mindful Activities & Games</strong></summary>
-  <ul>
-    <li>
-      <g-emoji class="g-emoji" alias="leaves" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f343.png">🍃</g-emoji>
-      <strong>Guided Breathing:</strong> An interactive, timed breathing exercise with smooth animations to promote calmness.
-    </li>
-    <li>
-      <g-emoji class="g-emoji" alias="puzzle" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f9e9.png">🧩</g-emoji>
-      <strong>Zen Slide & Starlight Tap:</strong> Non-verbal puzzle games designed to induce a state of flow and focus.
-    </li>
-    <li>
-      <g-emoji class="g-emoji" alias="sparkles" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2728.png">✨</g-emoji>
-      <strong>Willowisp Maze:</strong> A timed labyrinth game with strategic elements to encourage mindful problem-solving.
-    </li>
-  </ul>
-</details>
+---
 
-<details>
-  <summary><strong>✍️ Personalized Journaling</strong></summary>
-  <ul>
-    <li>
-      <g-emoji class="g-emoji" alias="notebook" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4d3.png">📓</g-emoji>
-      <strong>Text Journal:</strong> A private, focused space for written reflection, with entries saved securely to Firestore.
-    </li>
-    <li>
-      <g-emoji class="g-emoji" alias="movie_camera" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a5.png">🎥</g-emoji>
-      <strong>Video Diary:</strong> A non-verbal diary where users can record and save short video clips via Cloudinary, with entries displayed beautifully in a "Memories" log.
-    </li>
-  </ul>
-</details>
+## ✨ Features
 
-<details>
-  <summary><strong>📈 Progress & Motivation</strong></summary>
-  <ul>
-    <li>
-      <g-emoji class="g-emoji" alias="fire" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f525.png">🔥</g-emoji>
-      <strong>Daily Streaks & Progress Bar:</strong> A visual system on the home screen encourages daily engagement by tracking completed activities.
-    </li>
-    <li>
-      <g-emoji class="g-emoji" alias="bar_chart" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4ca.png">📊</g-emoji>
-      <strong>Mood Analytics:</strong> A dedicated stats page visualizes mood trends over time with clean, modern charts.
-    </li>
-  </ul>
-</details>
+### 🎮 Mindful Activities & Games
 
-<details>
-  <summary><strong>🎵 Immersive Experience</strong></summary>
-  <ul>
-    <li>
-      <g-emoji class="g-emoji" alias="musical_note" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3b5.png">🎵</g-emoji>
-      <strong>Integrated Music Player:</strong> Features a playlist of calming background tracks with rotating album art, managed globally via React Context.
-    </li>
-    <li>
-      <g-emoji class="g-emoji" alias="art" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a8.png">🎨</g-emoji>
-      <strong>Apple-Inspired "Soft UI":</strong> A clean, Neumorphic design with soft shadows and a polished aesthetic for a premium feel.
-    </li>
-  </ul>
-</details>
+| Feature | Description | Tech Highlights |
+|---------|-------------|-----------------|
+| **🧩 Zen Slide Puzzle** | Classic number puzzle with smooth animations | React Native Reanimated, Gesture Handler |
+| **✨ Willowisp Maze** | Timed labyrinth with strategic power-ups | Real-time Firebase, Haptic Feedback |
+| **🌬️ Guided Breathing** | Interactive breathing exercises | Custom animations, Progress tracking |
+| **⭐ Starlight Tap** | Rhythm-based constellation finder | Touch gestures, Visual feedback |
+
+### 📝 Personal Reflection
+
+| Feature | Description | Tech Highlights |
+|---------|-------------|-----------------|
+| **📓 Text Journal** | Private writing space with mood tracking | Firebase Firestore, Real-time sync |
+| **🎥 Video Diary** | Non-verbal video recordings | Cloudinary integration, Secure uploads |
+| **📊 Mood Analytics** | Visual trend analysis over time | Gifted Charts, Data visualization |
+
+### 🏆 Progress & Motivation
+
+| Feature | Description | Tech Highlights |
+|---------|-------------|-----------------|
+| **🔥 Daily Streaks** | Consistency tracking with visual rewards | Firebase Realtime listeners |
+| **📈 Progress Dashboard** | Live activity completion metrics | Custom hooks, Real-time updates |
+| **🏆 Leaderboards** | Friendly competition in mindful games | Firestore queries, Score optimization |
+
+### 🎵 Immersive Experience
+
+| Feature | Description | Tech Highlights |
+|---------|-------------|-----------------|
+| **🎵 Background Music** | Curated calming soundscapes | React Context, Global state management |
+| **🎨 Soft UI Design** | Apple-inspired neumorphic design | Custom components, Consistent theming |
+| **🔊 Haptic Feedback** | Tactile responses for interactions | Expo Haptics, Cross-platform support |
+
+---
 
 ## 🚀 Tech Stack
 
-| Category                 | Technology                                        |
-| :----------------------- | :------------------------------------------------ |
-| **Framework**            | React Native with Expo                            |
-| **Navigation**           | Expo Router (File-based w/ Groups)                |
-| **State Management**     | React Context (`AuthContext`, `MusicContext`)     |
-| **Animation & Gestures** | React Native Reanimated, Gesture Handler          |
-| **Backend (BaaS)**       | Firebase (Authentication, Firestore, Realtime DB) |
-| **Cloud Media**          | Cloudinary (for Video Diary uploads)              |
-| **Charting**             | `react-native-gifted-charts`                      |
-| **Language**             | TypeScript                                        |
+### Frontend & Mobile
+- **React Native** with **Expo SDK 49+**
+- **TypeScript** for type-safe development
+- **Expo Router** for file-based navigation
+- **React Native Reanimated** for 60fps animations
+- **React Native Gesture Handler** for native gestures
 
-## 📂 Project Structure
+### Backend & Services
+- **Firebase Authentication** for secure user management
+- **Cloud Firestore** for real-time data sync
+- **Firebase Storage** for media file management
+- **Cloudinary** for optimized video processing
 
-The project utilizes a feature-driven structure within the Expo Router `app` directory, promoting separation of concerns and scalability.
-
-
-## ⚙️ Setup & Installation
-
-Follow these instructions to get the project running on your local machine for development and testing.
-
-### Prerequisites
-
--   [Node.js](https://nodejs.org/) (LTS version recommended)
--   [Git](https://git-scm.com/)
--   Expo Go app on a physical iOS or Android device
-
-### Installation Guide
-
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/your-username/RelaxPoi.git
-    cd RelaxPoi
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Configure Environment Variables**
-    This project requires API keys from Firebase and Cloudinary.
-    
-    -   **Firebase:**
-        -   Create a `firebaseConfig.js` file in the project root.
-        -   Paste your Firebase Web configuration object into this file.
-        -   Ensure you export `auth` (Authentication) and `db` (Firestore) from this file.
-    
-    -   **Cloudinary:**
-        -   Open `app/(app)/videoDiary.tsx`.
-        -   Replace the placeholder `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` constants with your own credentials from your Cloudinary dashboard.
-
-4.  **Launch the App**
-    ```bash
-    npx expo start
-    ```
-    Scan the generated QR code with the **Expo Go** app on your mobile device.
+### State Management & Architecture
+- **React Context API** (`AuthContext`, `MusicContext`)
+- **Custom Hooks** for reusable business logic
+- **Component-Based Architecture** for maintainability
 
 ---
-<p align="center">
-  Developed with a focus on calm and mindfulness.
-</p>
+
+## 📱 Demo
+
+### Quick Preview
+- **Expo Go**: Scan QR code with Expo Go app
+- **Web Demo**: [Coming Soon]
+- **Video Walkthrough**: [[Link to demo video](https://www.youtube.com/watch?v=igbtU_Z9FQk)]
+
+### Test Credentials
+```bash
+Email: demo@dulce.app
+Password: demodemo
