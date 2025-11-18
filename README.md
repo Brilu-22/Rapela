@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./RelaxPoi/assets/images/DulM.png" alt="Dulce App Banner" width="800"/>
+  <img src="./assets/images/DulM.png" alt="Dulce App Banner" width="800"/>
 </p>
 
 <p align="center">
@@ -26,49 +26,62 @@ The application adheres to a strict "one-color" aesthetic, utilizing a deep **Ol
 <details>
   <summary><strong>🧠 Mindful Activities & Games</strong></summary>
   <ul>
-    <li><g-emoji class="g-emoji" alias="leaves">🍃</g-emoji> <strong>Guided Breathing:</strong> An interactive, timed breathing exercise with smooth animations.</li>
-    <li><g-emoji class="g-emoji" alias="puzzle">🧩</g-emoji> <strong>Zen Slide & Starlight Tap:</strong> Non-verbal puzzle games designed to induce a state of flow.</li>
-    <li><g-emoji class="g-emoji" alias="sparkles">✨</g-emoji> <strong>Willowisp Maze:</strong> A timed labyrinth with strategic elements to encourage focus.</li>
+    <li>
+      <g-emoji class="g-emoji" alias="leaves" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f343.png">🍃</g-emoji>
+      <strong>Guided Breathing:</strong> An interactive, timed breathing exercise with smooth animations to promote calmness.
+    </li>
+    <li>
+      <g-emoji class="g-emoji" alias="puzzle" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f9e9.png">🧩</g-emoji>
+      <strong>Zen Slide & Starlight Tap:</strong> Non-verbal puzzle games designed to induce a state of flow and focus.
+    </li>
+    <li>
+      <g-emoji class="g-emoji" alias="sparkles" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2728.png">✨</g-emoji>
+      <strong>Willowisp Maze:</strong> A timed labyrinth game with strategic elements to encourage mindful problem-solving.
+    </li>
   </ul>
 </details>
 
 <details>
   <summary><strong>✍️ Personalized Journaling</strong></summary>
   <ul>
-    <li><g-emoji class="g-emoji" alias="notebook">📓</g-emoji> <strong>Text Journal:</strong> A private space for reflection with entries saved securely to Firestore.</li>
-    <li><g-emoji class="g-emoji" alias="movie_camera">🎥</g-emoji> <strong>Video Diary:</strong> A non-verbal diary where users record and save short video clips via Cloudinary.</li>
+    <li>
+      <g-emoji class="g-emoji" alias="notebook" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4d3.png">📓</g-emoji>
+      <strong>Text Journal:</strong> A private, focused space for written reflection, with entries saved securely to Firestore.
+    </li>
+    <li>
+      <g-emoji class="g-emoji" alias="movie_camera" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a5.png">🎥</g-emoji>
+      <strong>Video Diary:</strong> A non-verbal diary where users can record and save short video clips via Cloudinary, with entries displayed beautifully in a "Memories" log.
+    </li>
   </ul>
 </details>
 
 <details>
   <summary><strong>📈 Progress & Motivation</strong></summary>
   <ul>
-    <li><g-emoji class="g-emoji" alias="fire">🔥</g-emoji> <strong>Daily Streaks & Progress Bar:</strong> Encourages daily engagement by tracking completed activities.</li>
-    <li><g-emoji class="g-emoji" alias="bar_chart">📊</g-emoji> <strong>Mood Analytics:</strong> Visualizes mood trends over time with clean, modern charts.</li>
+    <li>
+      <g-emoji class="g-emoji" alias="fire" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f525.png">🔥</g-emoji>
+      <strong>Daily Streaks & Progress Bar:</strong> A visual system on the home screen encourages daily engagement by tracking completed activities.
+    </li>
+    <li>
+      <g-emoji class="g-emoji" alias="bar_chart" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4ca.png">📊</g-emoji>
+      <strong>Mood Analytics:</strong> A dedicated stats page visualizes mood trends over time with clean, modern charts.
+    </li>
   </ul>
 </details>
 
 <details>
   <summary><strong>🎵 Immersive Experience</strong></summary>
   <ul>
-    <li><g-emoji class="g-emoji" alias="musical_note">🎵</g-emoji> <strong>Integrated Music Player:</strong> A playlist of calming background tracks with rotating album art, managed globally via React Context.</li>
-    <li><g-emoji class="g-emoji" alias="art">🎨</g-emoji> <strong>Apple-Inspired "Soft UI":</strong> A clean, Neumorphic design with soft shadows and a polished aesthetic.</li>
+    <li>
+      <g-emoji class="g-emoji" alias="musical_note" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3b5.png">🎵</g-emoji>
+      <strong>Integrated Music Player:</strong> Features a playlist of calming background tracks with rotating album art, managed globally via React Context.
+    </li>
+    <li>
+      <g-emoji class="g-emoji" alias="art" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a8.png">🎨</g-emoji>
+      <strong>Apple-Inspired "Soft UI":</strong> A clean, Neumorphic design with soft shadows and a polished aesthetic for a premium feel.
+    </li>
   </ul>
 </details>
-
-## 🎨 Design Process & Mockups
-
-The application's design was guided by high-fidelity mockups created in Figma. The goal was to establish a clean, calming, and modern aesthetic before implementation. The final app stays true to this initial vision, translating the design concepts into a fully functional user interface.
-
-|                                          Splash Screen                                           |                                      Home Screen                                      |
-| :----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------: |
-| <img src="./RelaxPoi/assets/images/MockD1.png" alt="Authentication Screens Mockup" width="300"/> | <img src="./RelaxPoi/assets/images/MockD3.png" alt="Home Screen Mockup" width="300"/> |
-
-## Video Explanation
-
-|                                    Initial Mockup                                     |                                       Live Demo                                       |
-| :-----------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------: |
-| <img src="./RelaxPoi/assets/images/MockD5.png" alt="Home Screen Mockup" width="300"/> | [![Dulce App Demo Video](https://youtu.be/igbtU_Z9FQk)](https://youtu.be/igbtU_Z9FQk) |
 
 ## 🚀 Tech Stack
 
@@ -86,3 +99,50 @@ The application's design was guided by high-fidelity mockups created in Figma. T
 ## 📂 Project Structure
 
 The project utilizes a feature-driven structure within the Expo Router `app` directory, promoting separation of concerns and scalability.
+
+
+## ⚙️ Setup & Installation
+
+Follow these instructions to get the project running on your local machine for development and testing.
+
+### Prerequisites
+
+-   [Node.js](https://nodejs.org/) (LTS version recommended)
+-   [Git](https://git-scm.com/)
+-   Expo Go app on a physical iOS or Android device
+
+### Installation Guide
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/your-username/RelaxPoi.git
+    cd RelaxPoi
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment Variables**
+    This project requires API keys from Firebase and Cloudinary.
+    
+    -   **Firebase:**
+        -   Create a `firebaseConfig.js` file in the project root.
+        -   Paste your Firebase Web configuration object into this file.
+        -   Ensure you export `auth` (Authentication) and `db` (Firestore) from this file.
+    
+    -   **Cloudinary:**
+        -   Open `app/(app)/videoDiary.tsx`.
+        -   Replace the placeholder `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` constants with your own credentials from your Cloudinary dashboard.
+
+4.  **Launch the App**
+    ```bash
+    npx expo start
+    ```
+    Scan the generated QR code with the **Expo Go** app on your mobile device.
+
+---
+<p align="center">
+  Developed with a focus on calm and mindfulness.
+</p>
